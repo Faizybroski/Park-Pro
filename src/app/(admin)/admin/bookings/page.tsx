@@ -9,6 +9,7 @@ import {
   formatDuration,
   getStatusColor,
 } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Download } from "lucide-react";
 
 const tabs = [
@@ -165,194 +166,240 @@ export default function BookingsPage() {
       </form>
 
       {/* Table */}
-      <div
-        className="rounded-2xl border overflow-hidden"
-        style={{ background: "var(--card)", borderColor: "var(--border)" }}
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ background: "var(--muted)" }}>
-                <th
-                  className="text-left px-4 py-3 font-medium"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
-                  Tracking #
-                </th>
-                <th
-                  className="text-left px-4 py-3 font-medium"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
-                  Customer
-                </th>
-                <th
-                  className="text-left px-4 py-3 font-medium hidden md:table-cell"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
-                  Vehicle
-                </th>
-                <th
-                  className="text-left px-4 py-3 font-medium hidden lg:table-cell"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
-                  Slot
-                </th>
-                <th
-                  className="text-left px-4 py-3 font-medium hidden lg:table-cell"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
-                  Dates
-                </th>
-                <th
-                  className="text-left px-4 py-3 font-medium"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
-                  Price
-                </th>
-                <th
-                  className="text-left px-4 py-3 font-medium"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
-                  Status
-                </th>
-                <th
-                  className="text-left px-4 py-3 font-medium"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
-                  Actions
-                </th>
+      <div className="">
+        <div className="">
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <tr key={i}>
+                <td colSpan={8} className="px-4 py-4">
+                  <div
+                    className="h-4 rounded animate-pulse"
+                    style={{ background: "var(--border)" }}
+                  />
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>
-                    <td colSpan={8} className="px-4 py-4">
-                      <div
-                        className="h-4 rounded animate-pulse"
-                        style={{ background: "var(--border)" }}
-                      />
-                    </td>
-                  </tr>
-                ))
-              ) : bookings.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="px-4 py-12 text-center"
-                    style={{ color: "var(--muted-foreground)" }}
-                  >
-                    No bookings found
-                  </td>
-                </tr>
-              ) : (
-                bookings.map((booking) => {
-                  const hours =
-                    (new Date(booking.bookedEndTime).getTime() -
-                      new Date(booking.bookedStartTime).getTime()) /
-                    (1000 * 60 * 60);
-                  return (
-                    <tr
-                      key={booking._id}
-                      className="border-t cursor-pointer hover:opacity-80 transition-all"
-                      style={{ borderColor: "var(--border)" }}
-                      onClick={() => setSelectedBooking(booking)}
+            ))
+          ) : bookings.length === 0 ? (
+            <tr>
+              <td
+                colSpan={8}
+                className="px-4 py-12 text-center"
+                style={{ color: "var(--muted-foreground)" }}
+              >
+                No bookings found
+              </td>
+            </tr>
+          ) : (
+            bookings.map((booking) => {
+              const hours =
+                (new Date(booking.bookedEndTime).getTime() -
+                  new Date(booking.bookedStartTime).getTime()) /
+                (1000 * 60 * 60);
+
+              return (
+                <div
+                  key={booking._id}
+                  onClick={() => setSelectedBooking(booking)}
+                  className="flex items-center justify-between gap-4 p-4 rounded-2xl border cursor-pointer hover:shadow-md transition-all mb-3"
+                  style={{
+                    borderColor: "var(--border)",
+                    background: "var(--card)",
+                  }}
+                >
+                  {/* LEFT: User + Tracking */}
+                  <div className="min-w-[180px]">
+                    <p
+                      className="text-xs font-mono font-bold"
+                      style={{ color: "var(--primary)" }}
                     >
-                      <td
-                        className="px-4 py-3 font-mono font-bold text-xs"
-                        style={{ color: "var(--primary)" }}
+                      {booking.trackingNumber}
+                    </p>
+                    <p className="font-medium">{booking.userName}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {booking.userEmail}
+                    </p>
+                  </div>
+
+                  {/* VEHICLE */}
+                  <div className="min-w-[160px]">
+                    <p>
+                      {booking.carMake} {booking.carModel}
+                    </p>
+                    <p className="text-xs font-mono text-muted-foreground">
+                      {booking.carNumber}
+                    </p>
+                  </div>
+
+                  {/* SLOT */}
+                  <div className="flex items-center justify-center gap-2 text-center min-w-[50px]">
+                    <span className="text-xs text-muted-foreground">Slot</span>
+                    <span className="font-bold">{booking.slotNumber}</span>
+                  </div>
+
+                  {/* TIME */}
+                  <div className="min-w-[120px]">
+                    <p className="text-xs truncate">
+                      <p>{formatDateTime(booking.bookedStartTime)}</p>
+                      <p>→</p>
+                      <p>{formatDateTime(booking.bookedEndTime)}</p>
+                    </p>
+                    <p className="font-medium">{formatDuration(hours)}</p>
+                  </div>
+
+                  {/* STATUS */}
+                  {/* <div className="min-w-[100px] text-center">
+                    
+                  </div> */}
+
+                  {/* PRICE */}
+                  <div className="min-w-[100px] text-right">
+                    <p className="font-bold text-lg">
+                      {formatPrice(booking.totalPrice)}
+                    </p>
+                  </div>
+
+                  {/* ACTIONS */}
+                  <div className="gap-2 min-w-[140px] flex flex-col items-center">
+                    <Badge
+                      className={`inline-flex px-2.5 py-1 rounded-full text-xs ${getStatusColor(
+                        booking.status,
+                      )}`}
+                    >
+                      {booking.status}
+                    </Badge>
+                    {booking.status === "upcoming" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusChange(booking._id, "active");
+                        }}
+                        className="text-xs font-medium px-3 py-1.5 rounded-lg text-white bg-green-500 min-w-[140px] max-w-fit"
                       >
-                        {booking.trackingNumber}
-                      </td>
-                      <td className="px-4 py-3">
-                        <p
-                          className="font-medium"
-                          style={{ color: "var(--foreground)" }}
-                        >
-                          {booking.userName}
-                        </p>
-                        <p
-                          className="text-xs"
-                          style={{ color: "var(--muted-foreground)" }}
-                        >
-                          {booking.userEmail}
-                        </p>
-                      </td>
-                      <td
-                        className="px-4 py-3 hidden md:table-cell"
-                        style={{ color: "var(--foreground)" }}
+                        Activate
+                      </button>
+                    )}
+
+                    {booking.status === "active" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusChange(booking._id, "completed");
+                        }}
+                        className="text-xs font-medium px-3 py-1.5 rounded-lg text-white bg-blue-500 min-w-[140px] max-w-fit"
                       >
-                        {booking.carMake} {booking.carModel}
-                        <br />
-                        <span
-                          className="text-xs font-mono"
-                          style={{ color: "var(--muted-foreground)" }}
-                        >
-                          {booking.carNumber}
-                        </span>
-                      </td>
-                      <td
-                        className="px-4 py-3 hidden lg:table-cell font-bold"
-                        style={{ color: "var(--foreground)" }}
-                      >
-                        {booking.slotNumber}
-                      </td>
-                      <td
-                        className="px-4 py-3 hidden lg:table-cell text-xs"
-                        style={{ color: "var(--muted-foreground)" }}
-                      >
-                        {formatDateTime(booking.bookedStartTime)}
-                        <br />→ {formatDateTime(booking.bookedEndTime)}
-                        <br />
-                        <span className="font-medium">
-                          {formatDuration(hours)}
-                        </span>
-                      </td>
-                      <td
-                        className="px-4 py-3 font-bold"
-                        style={{ color: "var(--foreground)" }}
-                      >
-                        {formatPrice(booking.totalPrice)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(booking.status)}`}
-                        >
-                          {booking.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        {booking.status === "upcoming" && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStatusChange(booking._id, "active");
-                            }}
-                            className="text-xs font-medium px-3 py-1 rounded-lg text-white"
-                            style={{ background: "#10b981" }}
-                          >
-                            Activate
-                          </button>
-                        )}
-                        {booking.status === "active" && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStatusChange(booking._id, "completed");
-                            }}
-                            className="text-xs font-medium px-3 py-1 rounded-lg text-white"
-                            style={{ background: "#3b82f6" }}
-                          >
-                            Complete
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                        Complete
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+
+              // bookings.map((booking) => {
+              //   const hours =
+              //     (new Date(booking.bookedEndTime).getTime() -
+              //       new Date(booking.bookedStartTime).getTime()) /
+              //     (1000 * 60 * 60);
+              //   return (
+              //     <tr
+              //       key={booking._id}
+              //       className="border-t cursor-pointer hover:opacity-80 transition-all"
+              //       style={{ borderColor: "var(--border)" }}
+              //       onClick={() => setSelectedBooking(booking)}
+              //     >
+              //       <td
+              //         className="px-4 py-3 font-mono font-bold text-xs"
+              //         style={{ color: "var(--primary)" }}
+              //       >
+              //         {booking.trackingNumber}
+              //       </td>
+              //       <td className="px-4 py-3">
+              //         <p
+              //           className="font-medium"
+              //           style={{ color: "var(--foreground)" }}
+              //         >
+              //           {booking.userName}
+              //         </p>
+              //         <p
+              //           className="text-xs"
+              //           style={{ color: "var(--muted-foreground)" }}
+              //         >
+              //           {booking.userEmail}
+              //         </p>
+              //       </td>
+              //       <td
+              //         className="px-4 py-3 hidden md:table-cell"
+              //         style={{ color: "var(--foreground)" }}
+              //       >
+              //         {booking.carMake} {booking.carModel}
+              //         <br />
+              //         <span
+              //           className="text-xs font-mono"
+              //           style={{ color: "var(--muted-foreground)" }}
+              //         >
+              //           {booking.carNumber}
+              //         </span>
+              //       </td>
+              //       <td
+              //         className="px-4 py-3 hidden lg:table-cell font-bold"
+              //         style={{ color: "var(--foreground)" }}
+              //       >
+              //         {booking.slotNumber}
+              //       </td>
+              //       <td
+              //         className="px-4 py-3 hidden lg:table-cell text-xs"
+              //         style={{ color: "var(--muted-foreground)" }}
+              //       >
+              //         {formatDateTime(booking.bookedStartTime)}
+              //         <br />→ {formatDateTime(booking.bookedEndTime)}
+              //         <br />
+              //         <span className="font-medium">
+              //           {formatDuration(hours)}
+              //         </span>
+              //       </td>
+              //       <td
+              //         className="px-4 py-3 font-bold"
+              //         style={{ color: "var(--foreground)" }}
+              //       >
+              //         {formatPrice(booking.totalPrice)}
+              //       </td>
+              //       <td className="px-4 py-3">
+              //         <span
+              //           className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(booking.status)}`}
+              //         >
+              //           {booking.status}
+              //         </span>
+              //       </td>
+              //       <td className="px-4 py-3">
+              //         {booking.status === "upcoming" && (
+              //           <button
+              //             onClick={(e) => {
+              //               e.stopPropagation();
+              //               handleStatusChange(booking._id, "active");
+              //             }}
+              //             className="text-xs font-medium px-3 py-1 rounded-lg text-white"
+              //             style={{ background: "#10b981" }}
+              //           >
+              //             Activate
+              //           </button>
+              //         )}
+              //         {booking.status === "active" && (
+              //           <button
+              //             onClick={(e) => {
+              //               e.stopPropagation();
+              //               handleStatusChange(booking._id, "completed");
+              //             }}
+              //             className="text-xs font-medium px-3 py-1 rounded-lg text-white"
+              //             style={{ background: "#3b82f6" }}
+              //           >
+              //             Complete
+              //           </button>
+              //         )}
+              //       </td>
+              //     </tr>
+              //   );
+              // }
+            })
+          )}
         </div>
       </div>
 

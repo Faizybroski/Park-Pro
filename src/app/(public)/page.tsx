@@ -22,6 +22,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { formatPrice, formatDuration } from "@/lib/utils";
+import { DateTimePicker } from "@/components/ui/DatePicker";
 import { api } from "@/lib/api";
 
 const benefits = [
@@ -197,22 +199,27 @@ export default function HomePage() {
                   <form onSubmit={handleQuickBook} className="space-y-4">
                     <div className="space-y-1.5">
                       <Label>Drop-off Date & Time</Label>
-                      <Input
+                      {/* <Input
                         type="datetime-local"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
                         required
+                      /> */}
+                      <DateTimePicker
+                        value={startDate}
+                        onChange={setStartDate}
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <Label>Pick-up Date & Time</Label>
-                      <Input
+                      {/* <Input
                         type="datetime-local"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
                         required
-                      />
+                      /> */}
+                      <DateTimePicker value={endDate} onChange={setEndDate} />
                     </div>
 
                     <Button className="w-full">Check Price & Book →</Button>

@@ -51,7 +51,7 @@ export default function AdminLayout({
     <div className="min-h-screen flex" style={{ background: "var(--muted)" }}>
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:w-64 flex-shrink-0`}
+        className={`fixed inset-y-0 left-0 z-50 w-64  transform transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:w-64 flex-shrink-0`}
         style={{ background: "var(--primary-dark, #142a45)" }}
       >
         <div className="flex flex-col h-full">

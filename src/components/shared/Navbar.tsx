@@ -50,7 +50,7 @@ export default function Navbar() {
                 className={`px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
                   pathname === href
                     ? "font-bold text-primary-light"
-                    : "hover:opacity-80 bg-transparent text-foreground font-medium"
+                    : "hover:opacity-80 bg-transparent text-muted-foreground font-medium"
                 }`}
               >
                 {label}

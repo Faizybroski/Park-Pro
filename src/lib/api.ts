@@ -64,7 +64,7 @@ class ApiClient {
   }
 
   async getPricePerHour(): Promise<ApiResponse<number>> {
-    return this.request("/bookings/price");
+    return this.request("/bookings/price-per-hour");
   }
 
   async trackBooking(trackingNumber: string): Promise<ApiResponse<Booking>> {
