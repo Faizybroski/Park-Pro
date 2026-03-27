@@ -10,6 +10,7 @@ import {
   BadgeDollarSign,
   LogOut,
 } from "lucide-react";
+import { api } from "@/lib/api";
 
 const sidebarLinks = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -29,24 +30,21 @@ export default function AdminLayout({
   const [adminName, setAdminName] = useState("Admin");
 
   useEffect(() => {
-    const token = localStorage.getItem("parkpro_token");
-    if (!token && pathname !== "/admin/login") {
-      router.push("/admin/login");
-      return;
-    }
     const admin = localStorage.getItem("parkpro_admin");
+
     if (admin) {
       setAdminName(JSON.parse(admin).name || "Admin");
     }
-  }, [pathname, router]);
+  }, []);
 
   // Don't render layout for login page
-  if (pathname === "/admin/login") return <>{children}</>;
+  if (pathname === "/login") return <>{children}</>;
 
-  const handleLogout = () => {
-    localStorage.removeItem("parkpro_token");
-    localStorage.removeItem("parkpro_admin");
-    router.push("/admin/login");
+  const handleLogout = async () => {
+    // localStorage.removeItem("parkpro_token");
+    // localStorage.removeItem("parkpro_admin");
+    await api.logout();
+    router.push("/login");
   };
 
   return (

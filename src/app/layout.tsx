@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "@/components/shared/Navbar";
-import Footer from "@/components/shared/Footer";
-import LayoutClient from "./Clientlayout";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "ParkPro - Secure Airport Parking",
@@ -17,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -31,7 +32,9 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased min-h-screen flex flex-col">
-        <LayoutClient>{children}</LayoutClient>
+        {/* <LayoutClient> */}
+        {children}
+        {/* </LayoutClient> */}
         {/* {admin ? null : <Navbar />}
         <main className="flex-1 pt-16">{children}</main>
         {admin ? null : <Footer />} */}

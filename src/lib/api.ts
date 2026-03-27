@@ -26,15 +26,17 @@ class ApiClient {
       "X-Business-Id": BUSINESS_ID,
       "Content-Type": "application/json",
       ...((options.headers as Record<string, string>) || {}),
+      // credentials: "include",
     };
 
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+    // if (token) {
+    //   headers["Authorization"] = `Bearer ${token}`;
+    // }
 
     const res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers,
+      credentials: "include",
     });
 
     if (!res.ok) {
@@ -84,6 +86,12 @@ class ApiClient {
     return this.request("/admin/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
+    });
+  }
+
+  async logout() {
+    return this.request("/admin/logout", {
+      method: "POST",
     });
   }
 
