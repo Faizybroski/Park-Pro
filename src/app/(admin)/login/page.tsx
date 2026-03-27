@@ -135,6 +135,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { api } from "@/lib/api";
 
 import {
@@ -190,20 +191,23 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted px-4">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="text-center space-y-2">
-          <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center bg-primary text-white font-bold">
+    <div className="min-h-screen flex items-center justify-center bg-[linear-gradient(135deg,var(--primary-dark,#142a45)_0%,var(--primary-light,#2d5f8b)_100%)] px-4">
+      <Card className="w-full max-w-md shadow-2xl p-8">
+        <CardHeader className="text-center p-0 mb-2">
+          <Link
+            href="/"
+            className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-xl mx-auto mb-4 bg-[linear-gradient(135deg,var(--primary-dark,#142a45)_0%,var(--primary-light,#2d5f8b)_100%)]"
+          >
             PP
-          </div>
+          </Link>
 
-          <CardTitle>Admin Login</CardTitle>
-          <CardDescription>
-            Sign in to manage your parking system
+          <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
+          <CardDescription className="text-sm">
+            Sign in to manage your parking
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="p-0">
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertDescription>{error}</AlertDescription>

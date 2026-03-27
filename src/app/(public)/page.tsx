@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ShieldCheck,
@@ -12,6 +12,17 @@ import {
   Smartphone,
   Plane,
 } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
 
 const benefits = [
   {
@@ -103,6 +114,7 @@ export default function HomePage() {
   const router = useRouter();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [pricePerHour, setPricePerHour] = useState(3);
 
   const handleQuickBook = (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,67 +125,106 @@ export default function HomePage() {
     }
   };
 
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const res = await api.getPricePerHour();
+        setPricePerHour(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetch();
+  }, []);
+
   return (
     <div>
       {/* Hero Section */}
-      <section
-        className="relative overflow-hidden"
-        style={{
-          background:
-            "linear-gradient(135deg, var(--primary-dark, #142a45) 0%, var(--primary, #1e3a5f) 50%, var(--primary-light, #2d5f8b) 100%)",
-        }}
-      >
+      <section className="relative overflow-hidden bg-[linear-gradient(135deg,var(--primary-dark,#142a45)_0%,var(--primary,#1e3a5f)_50%,var(--primary-light,#2d5f8b)_100%)]">
         {/* Background decorations */}
         <div className="absolute inset-0 overflow-hidden">
-          <div
-            className="absolute -top-40 -right-40 w-80 h-80 rounded-full opacity-10"
-            style={{ background: "var(--accent)" }}
-          ></div>
-          <div
-            className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full opacity-10"
-            style={{ background: "var(--accent-light)" }}
-          ></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full opacity-10 bg-accent"></div>
+          <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full opacity-10 bg-accent-light"></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left content */}
             <div className="text-white animate-slide-up">
-              <div
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-6"
-                style={{ background: "rgba(245,158,11,0.2)", color: "#fbbf24" }}
-              >
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-6 bg-[rgba(245,158,11,0.2)] text-[#fbbf24]">
                 <Plane className="w-4 h-4" strokeWidth={2} />
                 Trusted by 50,000+ travellers
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
                 Secure Airport
                 <br />
-                <span style={{ color: "#fbbf24" }}>Parking</span> Made Simple
+                <span className="text-[#fbbf24]">Parking</span> Made Simple
               </h1>
               <p className="text-lg opacity-80 mb-8 max-w-lg">
                 Book your guaranteed parking space in 60 seconds. No account
                 needed. Competitive prices with multi-day discounts.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link
-                  href="/book"
+                <Button
+                  asChild
+                  variant="custom"
                   className="px-8 py-3.5 rounded-xl text-lg font-bold transition-all duration-300 hover:scale-105 active:scale-95"
-                  style={{ background: "#f59e0b", color: "#1e3a5f" }}
                 >
-                  Book Now →
-                </Link>
-                <Link
-                  href="/track"
-                  className="px-8 py-3.5 rounded-xl text-lg font-semibold border-2 border-white/30 text-white transition-all duration-300 hover:bg-white/10"
+                  <Link href="/book">Book Now →</Link>
+                </Button>
+                <Button
+                  asChild
+                  className="px-8 py-3.5 rounded-xl text-lg font-semibold  text-white transition-all duration-300 hover:bg-white/10"
                 >
-                  Track Booking
-                </Link>
+                  <Link href="/track">Track Booking</Link>
+                </Button>
               </div>
             </div>
 
             {/* Quick booking form */}
             <div className="animate-fade-in">
+              <Card className="shadow-2xl rounded-2xl p-6 lg:p-8 bg-card text-card-foreground">
+                <CardHeader className="p-0">
+                  <CardTitle className="text-xl font-bold mb-1">
+                    Quick Price Check
+                  </CardTitle>
+                  <CardDescription className="text-sm mb-4">
+                    Enter your dates to see pricing
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="p-0">
+                  <form onSubmit={handleQuickBook} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label>Drop-off Date & Time</Label>
+                      <Input
+                        type="datetime-local"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label>Pick-up Date & Time</Label>
+                      <Input
+                        type="datetime-local"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <Button className="w-full">Check Price & Book →</Button>
+                  </form>
+
+                  <p className="text-xs text-muted-foreground text-center mt-3">
+                    From £{pricePerHour}/hour • No hidden fees
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+            {/* <div className="animate-fade-in">
               <div
                 className="rounded-2xl p-6 lg:p-8 shadow-2xl"
                 style={{
@@ -252,25 +303,19 @@ export default function HomePage() {
                   From £3/hour • No hidden fees
                 </p>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="py-20" style={{ background: "var(--muted)" }}>
+      <section className="py-20 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h2
-              className="text-3xl sm:text-4xl font-bold mb-4"
-              style={{ color: "var(--foreground)" }}
-            >
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">
               How It Works
             </h2>
-            <p
-              className="text-lg max-w-2xl mx-auto"
-              style={{ color: "var(--muted-foreground)" }}
-            >
+            <p className="text-lg max-w-2xl mx-auto text-muted-foreground">
               Book your secure parking space in four simple steps
             </p>
           </div>
@@ -281,7 +326,19 @@ export default function HomePage() {
                 className="text-center animate-fade-in"
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
-                <div
+                <Card className="text-center hover:shadow-lg transition">
+                  <CardContent className="pt-6">
+                    <div className="w-16 h-16 rounded-xl text-2xl bg-[linear-gradient(135deg,var(--primary-dark,#142a45)_0%,var(--primary-light,#2d5f8b)_100%)] text-primary-foreground flex items-center justify-center mx-auto mb-4 font-bold">
+                      {step.num}
+                    </div>
+
+                    <h3 className="text-lg font-semibold mb-2 text-foreground">
+                      {step.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{step.desc}</p>
+                  </CardContent>
+                </Card>
+                {/* <div
                   className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mx-auto mb-4"
                   style={{
                     background:
@@ -301,7 +358,7 @@ export default function HomePage() {
                   style={{ color: "var(--muted-foreground)" }}
                 >
                   {step.desc}
-                </p>
+                </p> */}
               </div>
             ))}
           </div>
@@ -309,19 +366,13 @@ export default function HomePage() {
       </section>
 
       {/* Benefits */}
-      <section className="py-20" style={{ background: "var(--background)" }}>
+      <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h2
-              className="text-3xl sm:text-4xl font-bold mb-4"
-              style={{ color: "var(--foreground)" }}
-            >
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">
               Why Choose ParkPro?
             </h2>
-            <p
-              className="text-lg max-w-2xl mx-auto"
-              style={{ color: "var(--muted-foreground)" }}
-            >
+            <p className="text-lg max-w-2xl mx-auto text-muted-foreground">
               We make airport parking stress-free with unbeatable features
             </p>
           </div>
@@ -329,37 +380,48 @@ export default function HomePage() {
             {benefits.map((b, i) => {
               const Icon = b.icon;
               return (
-                <div
+                <Card
                   key={i}
-                  className="group p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-                  style={{
-                    background: "var(--card)",
-                    borderColor: "var(--border)",
-                  }}
+                  className="group p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
                 >
-                  {/* <div className="text-3xl mb-4">{b.icon}</div> */}
-
-                  <h3
-                    className="text-lg font-bold mb-5  flex items-center gap-2"
-                    style={{ color: "var(--foreground)" }}
-                  >
-                    {/* <span className={`p-2 rounded-lg ${b.bg}`}>
-                      <Icon className={`w-5 h-5 ${b.color}`} />
-                    </span> */}
+                  <div className="flex items-center gap-3 ">
                     <div
-                      className={`w-12 h-12 flex items-center justify-center rounded-xl  ${b.bg} group-hover:scale-110 transition`}
+                      className={`w-12 h-12 flex items-center justify-center rounded-lg bg-muted group-hover:scale-110 transition ${b.bg}`}
                     >
                       <Icon className={`w-6 h-6 ${b.color}`} />
                     </div>
-                    {b.title}
-                  </h3>
-                  <p
-                    className="text-sm leading-relaxed"
-                    style={{ color: "var(--muted-foreground)" }}
-                  >
-                    {b.desc}
-                  </p>
-                </div>
+
+                    <h3 className="font-semibold text-lg">{b.title}</h3>
+                  </div>
+
+                  <p className="text-sm text-muted-foreground">{b.desc}</p>
+                </Card>
+                // <div
+                //   key={i}
+                //   className="group p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                //   style={{
+                //     background: "var(--card)",
+                //     borderColor: "var(--border)",
+                //   }}
+                // >
+                //   <h3
+                //     className="text-lg font-bold mb-5  flex items-center gap-2"
+                //     style={{ color: "var(--foreground)" }}
+                //   >
+                //     <div
+                //       className={`w-12 h-12 flex items-center justify-center rounded-xl  ${b.bg} group-hover:scale-110 transition`}
+                //     >
+                //       <Icon className={`w-6 h-6 ${b.color}`} />
+                //     </div>
+                //     {b.title}
+                //   </h3>
+                //   <p
+                //     className="text-sm leading-relaxed"
+                //     style={{ color: "var(--muted-foreground)" }}
+                //   >
+                //     {b.desc}
+                //   </p>
+                // </div>
               );
             })}
           </div>
@@ -367,59 +429,65 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20" style={{ background: "var(--muted)" }}>
+      <section className="py-20 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h2
-              className="text-3xl sm:text-4xl font-bold mb-4"
-              style={{ color: "var(--foreground)" }}
-            >
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">
               What Our Customers Say
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((t, i) => (
-              <div
-                key={i}
-                className="p-6 rounded-2xl border"
-                style={{
-                  background: "var(--card)",
-                  borderColor: "var(--border)",
-                }}
-              >
-                <div className="flex mb-3">
-                  {Array.from({ length: t.stars }).map((_, j) => (
-                    <span key={j} className="text-yellow-400 text-lg">
-                      ★
-                    </span>
-                  ))}
-                </div>
-                <p
-                  className="text-sm mb-4 leading-relaxed"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
-                  "{t.text}"
-                </p>
-                <p
-                  className="font-semibold text-sm"
-                  style={{ color: "var(--foreground)" }}
-                >
-                  {t.name}
-                </p>
-              </div>
+              <Card key={i}>
+                <CardContent className="pt-6">
+                  <div className="flex mb-3 text-yellow-400">
+                    {Array.from({ length: t.stars }).map((_, j) => (
+                      <span key={j}>★</span>
+                    ))}
+                  </div>
+
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {`"${t.text}"`}
+                  </p>
+
+                  <p className="font-semibold text-sm">{t.name}</p>
+                </CardContent>
+              </Card>
+              // <div
+              //   key={i}
+              //   className="p-6 rounded-2xl border"
+              //   style={{
+              //     background: "var(--card)",
+              //     borderColor: "var(--border)",
+              //   }}
+              // >
+              //   <div className="flex mb-3">
+              //     {Array.from({ length: t.stars }).map((_, j) => (
+              //       <span key={j} className="text-yellow-400 text-lg">
+              //         ★
+              //       </span>
+              //     ))}
+              //   </div>
+              //   <p
+              //     className="text-sm mb-4 leading-relaxed"
+              //     style={{ color: "var(--muted-foreground)" }}
+              //   >
+              //     "{t.text}"
+              //   </p>
+              //   <p
+              //     className="font-semibold text-sm"
+              //     style={{ color: "var(--foreground)" }}
+              //   >
+              //     {t.name}
+              //   </p>
+              // </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section
-        className="py-20"
-        style={{
-          background:
-            "linear-gradient(135deg, var(--primary-dark, #142a45), var(--primary))",
-        }}
-      >
+      <section className="py-20 bg-[linear-gradient(135deg,var(--primary-dark,#142a45),var(--primary))]">
         <div className="max-w-4xl mx-auto px-4 text-center text-white">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
             Ready to Book Your Parking?
@@ -427,13 +495,13 @@ export default function HomePage() {
           <p className="text-lg opacity-80 mb-8">
             Secure your space now and travel with peace of mind
           </p>
-          <Link
-            href="/book"
+          <Button
+            asChild
+            variant="custom"
             className="inline-flex items-center px-10 py-4 rounded-xl text-lg font-bold transition-all duration-300 hover:scale-105"
-            style={{ background: "#f59e0b", color: "#1e3a5f" }}
           >
-            Book Now — From £3/hr
-          </Link>
+            <Link href="/book">Book Now — From £{pricePerHour}/hr</Link>
+          </Button>
         </div>
       </section>
     </div>
