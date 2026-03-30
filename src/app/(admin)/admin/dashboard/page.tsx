@@ -8,7 +8,9 @@ import {
   ClipboardList,
   Car,
   BadgeDollarSign,
-  ParkingCircle,
+  CalendarDays,
+  ToggleRight,
+  ToggleLeft,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -16,17 +18,11 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await api.getDashboard();
-        setStats(res.data);
-      } catch (err) {
-        console.error("Failed to fetch dashboard:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStats();
+    api
+      .getDashboard()
+      .then((res) => setStats(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
@@ -41,24 +37,13 @@ export default function DashboardPage() {
             />
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-48 rounded-2xl animate-pulse"
-              style={{ background: "var(--border)" }}
-            />
-          ))}
-        </div>
       </div>
     );
   }
 
   if (!stats)
     return (
-      <p style={{ color: "var(--muted-foreground)" }}>
-        Failed to load dashboard
-      </p>
+      <p style={{ color: "var(--muted-foreground)" }}>Failed to load dashboard</p>
     );
 
   const kpis = [
@@ -70,7 +55,7 @@ export default function DashboardPage() {
       bg: "bg-blue-100",
     },
     {
-      label: "Active Parkings",
+      label: "Activated Parkings",
       value: stats.activeBookings.toLocaleString(),
       icon: Car,
       color: "text-green-600",
@@ -84,9 +69,9 @@ export default function DashboardPage() {
       bg: "bg-yellow-100",
     },
     {
-      label: "Available Slots",
-      value: `${stats.slots.available}/${stats.slots.total}`,
-      icon: ParkingCircle,
+      label: "Today's Bookings",
+      value: stats.todayBookings.toLocaleString(),
+      icon: CalendarDays,
       color: "text-purple-600",
       bg: "bg-purple-100",
     },
@@ -94,6 +79,33 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Booking toggle status banner */}
+      <div
+        className={`flex items-center gap-3 px-5 py-3 rounded-2xl border text-sm font-medium ${
+          stats.bookingEnabled
+            ? "bg-green-50 border-green-200 text-green-800"
+            : "bg-red-50 border-red-200 text-red-800"
+        }`}
+      >
+        {stats.bookingEnabled ? (
+          <ToggleRight className="w-5 h-5 shrink-0" />
+        ) : (
+          <ToggleLeft className="w-5 h-5 shrink-0" />
+        )}
+        <span>
+          Booking is currently{" "}
+          <strong>{stats.bookingEnabled ? "enabled" : "disabled"}</strong>
+          {!stats.bookingEnabled && " — customers cannot make new reservations."}{" "}
+          {stats.bookingEnabled && "— customers can book parking spaces."}
+        </span>
+        <a
+          href="/admin/bookings"
+          className="ml-auto underline text-xs font-semibold opacity-70 hover:opacity-100"
+        >
+          Manage →
+        </a>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi, i) => {
@@ -101,92 +113,48 @@ export default function DashboardPage() {
           return (
             <div
               key={i}
-              className="rounded-2xl border p-5 transition-all hover:shadow-md hover:scale-[1.02]"
-              style={{
-                background: "var(--card)",
-                borderColor: "var(--border)",
-              }}
+              className="rounded-2xl border p-5 transition-all hover:shadow-md"
+              style={{ background: "var(--card)", borderColor: "var(--border)" }}
             >
               <div className="flex items-center justify-between mb-3">
-                <span
-                  className="text-sm font-medium"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
+                <span className="text-sm font-medium" style={{ color: "var(--muted-foreground)" }}>
                   {kpi.label}
                 </span>
-                <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${kpi.bg} group-hover:scale-110 transition`}
-                >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${kpi.bg}`}>
                   <Icon className={`w-5 h-5 ${kpi.color}`} />
                 </div>
-
-                {/* <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-                style={{ background: kpi.bgColor }}
-              >
-                {kpi.icon}
-              </div> */}
               </div>
-              <p className="text-2xl font-bold" style={{ color: kpi.color }}>
-                {kpi.value}
-              </p>
+              <p className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</p>
             </div>
           );
         })}
       </div>
 
       {/* Secondary Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Booking status breakdown */}
         <div
           className="rounded-2xl border p-6"
           style={{ background: "var(--card)", borderColor: "var(--border)" }}
         >
-          <h3
-            className="text-sm font-semibold mb-4"
-            style={{ color: "var(--foreground)" }}
-          >
+          <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--foreground)" }}>
             Booking Status Overview
           </h3>
           <div className="space-y-3">
             {[
-              {
-                label: "Upcoming",
-                value: stats.upcomingBookings,
-                color: "#3b82f6",
-              },
-              {
-                label: "Active",
-                value: stats.activeBookings,
-                color: "#10b981",
-              },
-              {
-                label: "Completed",
-                value: stats.completedBookings,
-                color: "#6b7280",
-              },
-              {
-                label: "Cancelled",
-                value: stats.cancelledBookings,
-                color: "#ef4444",
-              },
+              { label: "Upcoming", value: stats.upcomingBookings, color: "#3b82f6" },
+              { label: "Activated", value: stats.activeBookings, color: "#10b981" },
+              { label: "Completed", value: stats.completedBookings, color: "#6b7280" },
+              { label: "Cancelled", value: stats.cancelledBookings, color: "#ef4444" },
             ].map((item, i) => (
               <div key={i} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ background: item.color }}
-                  />
-                  <span
-                    className="text-sm"
-                    style={{ color: "var(--muted-foreground)" }}
-                  >
+                  <div className="w-3 h-3 rounded-full" style={{ background: item.color }} />
+                  <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>
                     {item.label}
                   </span>
                 </div>
-                <span
-                  className="text-sm font-bold"
-                  style={{ color: "var(--foreground)" }}
-                >
+                <span className="text-sm font-bold" style={{ color: "var(--foreground)" }}>
                   {item.value}
                 </span>
               </div>
@@ -194,140 +162,42 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Quick stats */}
         <div
           className="rounded-2xl border p-6"
           style={{ background: "var(--card)", borderColor: "var(--border)" }}
         >
-          <h3
-            className="text-sm font-semibold mb-4"
-            style={{ color: "var(--foreground)" }}
-          >
-            Slot Utilization
-          </h3>
-          <div className="flex items-center justify-center">
-            <div className="relative w-36 h-36">
-              <svg
-                className="w-full h-full transform -rotate-90"
-                viewBox="0 0 36 36"
-              >
-                <path
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  fill="none"
-                  stroke="var(--border)"
-                  strokeWidth="3"
-                />
-                <path
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  fill="none"
-                  stroke="#10b981"
-                  strokeWidth="3"
-                  strokeDasharray={`${(stats.slots.occupied / stats.slots.total) * 100}, 100`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span
-                  className="text-2xl font-bold"
-                  style={{ color: "var(--foreground)" }}
-                >
-                  {Math.round((stats.slots.occupied / stats.slots.total) * 100)}
-                  %
-                </span>
-                <span
-                  className="text-xs"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
-                  Occupied
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 flex justify-center gap-6 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-2.5 h-2.5 rounded-full bg-green-500" />{" "}
-              <span style={{ color: "var(--muted-foreground)" }}>
-                Occupied ({stats.slots.occupied})
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div
-                className="w-2.5 h-2.5 rounded-full"
-                style={{ background: "var(--border)" }}
-              />{" "}
-              <span style={{ color: "var(--muted-foreground)" }}>
-                Available ({stats.slots.available})
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="rounded-2xl border p-6"
-          style={{ background: "var(--card)", borderColor: "var(--border)" }}
-        >
-          <h3
-            className="text-sm font-semibold mb-4"
-            style={{ color: "var(--foreground)" }}
-          >
+          <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--foreground)" }}>
             Quick Stats
           </h3>
           <div className="space-y-4">
-            <div
-              className="p-3 rounded-xl"
-              style={{ background: "var(--muted)" }}
-            >
-              <p
-                className="text-xs"
-                style={{ color: "var(--muted-foreground)" }}
+            {[
+              { label: "Today's Bookings", value: String(stats.todayBookings) },
+              {
+                label: "Avg. Revenue Per Booking",
+                value:
+                  stats.completedBookings + stats.activeBookings > 0
+                    ? formatPrice(
+                        stats.totalRevenue /
+                          (stats.completedBookings + stats.activeBookings),
+                      )
+                    : "£0.00",
+              },
+              { label: "Total Revenue", value: formatPrice(stats.totalRevenue) },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="p-3 rounded-xl"
+                style={{ background: "var(--muted)" }}
               >
-                Today&apos;s Bookings
-              </p>
-              <p
-                className="text-xl font-bold"
-                style={{ color: "var(--foreground)" }}
-              >
-                {stats.todayBookings}
-              </p>
-            </div>
-            <div
-              className="p-3 rounded-xl"
-              style={{ background: "var(--muted)" }}
-            >
-              <p
-                className="text-xs"
-                style={{ color: "var(--muted-foreground)" }}
-              >
-                Total Parking Slots
-              </p>
-              <p
-                className="text-xl font-bold"
-                style={{ color: "var(--foreground)" }}
-              >
-                {stats.slots.total}
-              </p>
-            </div>
-            <div
-              className="p-3 rounded-xl"
-              style={{ background: "var(--muted)" }}
-            >
-              <p
-                className="text-xs"
-                style={{ color: "var(--muted-foreground)" }}
-              >
-                Avg. Revenue Per Booking
-              </p>
-              <p
-                className="text-xl font-bold"
-                style={{ color: "var(--foreground)" }}
-              >
-                {stats.totalBookings > 0
-                  ? formatPrice(
-                      stats.totalRevenue /
-                        (stats.completedBookings + stats.activeBookings || 1),
-                    )
-                  : "£0.00"}
-              </p>
-            </div>
+                <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                  {item.label}
+                </p>
+                <p className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
+                  {item.value}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

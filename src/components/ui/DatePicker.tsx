@@ -213,22 +213,22 @@ export function DateTimePicker({ value, onChange }: Props) {
   return (
     <Popover>
       {/* SINGLE TRIGGER */}
-      <PopoverTrigger asChild>
+      <PopoverTrigger asChild className="active:bg-primary">
         <Button
           variant="outline"
-          className="w-full h-11 justify-start text-left font-normal bg-muted"
+          className="w-full h-11 rounded-full justify-start text-left font-normal border border-primary-light/10 bg-input hover:bg-input active:bg-input data-[state=open]:bg-input"
         >
-          <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+          <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
 
           {date ? (
             <>
-              {format(date, "PPP")}
-              <span className="mx-2 text-muted-foreground">•</span>
-              <Clock className="mr-1 h-4 w-4 text-muted-foreground" />
-              {time || "00:00"}
+              <span className="text-primary">{format(date, "PPP")}</span>
+              <span className="mx-2 text-primary">•</span>
+              <Clock className="mr-1 h-4 w-4 text-primary" />
+              <span className="text-primary">{time || "00:00"}</span>
             </>
           ) : (
-            <span className="text-muted-foreground">Pick date & time</span>
+            <span className="text-primary/80">Pick date & time</span>
           )}
         </Button>
       </PopoverTrigger>
@@ -252,7 +252,9 @@ export function DateTimePicker({ value, onChange }: Props) {
 
           {/* Time list */}
           <div className="p-3 w-40 max-h-72 overflow-y-auto">
-            <p className="text-sm font-medium mb-2">Select time</p>
+            <p className="text-sm text-primary-light font-medium mb-2">
+              Select time
+            </p>
 
             <div className="flex flex-col gap-1">
               {timeSlots.map((slot) => (
@@ -263,7 +265,9 @@ export function DateTimePicker({ value, onChange }: Props) {
                     update(undefined, slot);
                   }}
                   className={`text-sm px-3 py-2 rounded-md text-left hover:bg-muted ${
-                    time === slot ? "bg-muted font-medium" : ""
+                    time === slot
+                      ? "bg-primary text-white hover:bg-primary font-medium"
+                      : ""
                   }`}
                 >
                   {slot}

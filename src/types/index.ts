@@ -1,3 +1,6 @@
+export type BookingStatus = 'upcoming' | 'active' | 'completed' | 'cancelled';
+export type LateChargeMode = 'none' | 'pending' | 'finalized';
+
 export interface Booking {
   _id: string;
   userName: string;
@@ -7,32 +10,32 @@ export interface Booking {
   carModel: string;
   carNumber: string;
   carColor: string;
-  slotId: string;
-  slotNumber: number;
   trackingNumber: string;
   bookedStartTime: string;
   bookedEndTime: string;
-  actualExitTime?: string;
+  actualExitTime?: string | null;
   departureTerminal?: string;
   departureFlightNo?: string;
   arrivalTerminal?: string;
   arrivalFlightNo?: string;
-  status: 'upcoming' | 'active' | 'completed' | 'cancelled';
+  status: BookingStatus;
+  statusLabel?: string;
+  canActivate?: boolean;
+  canComplete?: boolean;
+  canCancel?: boolean;
+  isOvertimeRunning?: boolean;
+  timeUntilStartHours?: number;
+  timeRemainingHours?: number;
+  uptimeHours?: number;
+  uptimePrice?: number;
+  currentTotalPrice?: number;
+  lateChargeMode?: LateChargeMode;
   price: number;
   overtimeHours: number;
   overtimePrice: number;
   totalPrice: number;
   pricePerHour: number;
   discountPercent: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Slot {
-  _id: string;
-  slotNumber: number;
-  status: 'available' | 'occupied';
-  currentBookingId?: Booking | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,11 +66,7 @@ export interface DashboardStats {
   cancelledBookings: number;
   totalRevenue: number;
   todayBookings: number;
-  slots: {
-    total: number;
-    available: number;
-    occupied: number;
-  };
+  bookingEnabled: boolean;
 }
 
 export interface ApiResponse<T> {

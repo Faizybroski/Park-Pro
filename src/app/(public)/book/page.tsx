@@ -6,14 +6,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { formatPrice, formatDuration } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import { DateTimePicker } from "@/components/ui/DatePicker";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -21,10 +20,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   CalendarClock,
-  Clock,
   User,
   Mail,
   Phone,
@@ -37,9 +41,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Tag,
-  Percent,
-  PartyPopper,
   BadgePercent,
+  Ban,
 } from "lucide-react";
 
 // ─── regex patterns ───────────────────────────────────────────────
@@ -173,6 +176,14 @@ function BookingFormContent() {
     null,
   );
   const [priceLoading, setPriceLoading] = useState(false);
+  const [bookingEnabled, setBookingEnabled] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    api
+      .getBookingStatus()
+      .then((res) => setBookingEnabled(res.data.bookingEnabled))
+      .catch(() => setBookingEnabled(true)); // fail open
+  }, []);
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
@@ -234,8 +245,6 @@ function BookingFormContent() {
       }
     };
     fetchPrice();
-    console.log("START:", startTime, typeof startTime);
-    console.log("END:", endTime, typeof endTime);
   }, [startTime, endTime]);
 
   // ── submit mutation ────────────────────────────────────────────
@@ -253,6 +262,29 @@ function BookingFormContent() {
   });
 
   const onSubmit = (data: BookingFormValues) => mutation.mutate(data);
+
+  // Booking disabled full-page block
+  if (bookingEnabled === false) {
+    return (
+      <div className="min-h-screen py-20 bg-muted/40 flex items-center justify-center">
+        <div className="max-w-md mx-auto px-4 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-5">
+            <Ban className="w-8 h-8 text-red-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground mb-3">
+            Bookings Temporarily Unavailable
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            We are not accepting new parking reservations at the moment. Please
+            check back soon or contact us for assistance.
+          </p>
+          <Button asChild variant="outline">
+            <a href="/contact">Contact Us</a>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-10 bg-muted/40">
@@ -288,7 +320,7 @@ function BookingFormContent() {
             {/* ═══════════════════════════════════════════════ */}
             {/*  DATES SECTION                                 */}
             {/* ═══════════════════════════════════════════════ */}
-            <Card className="shadow-xl rounded-2xl p-6 lg:p-8 bg-card text-card-foreground">
+            <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
               <CardHeader className="p-0">
                 <CardTitle className="flex items-center gap-2 text-lg font-bold mb-4 ">
                   <CalendarClock className="h-6 w-6 text-primary" />
@@ -358,10 +390,10 @@ function BookingFormContent() {
 
                 {/* Price preview */}
                 {pricePreview && (
-                  <div className="mt-4 p-4 rounded-xl bg-muted sm:col-span-2">
+                  <div className="mt-4 p-4 rounded-xl border border-primary-light/10 bg-input sm:col-span-2">
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-primary">
                           {pricePreview.totalDays?.toFixed(1)} days (
                           {pricePreview.totalHours?.toFixed(0)} hours) @{" "}
                           {formatPrice(pricePreview.pricePerHour)}/hr
@@ -378,11 +410,11 @@ function BookingFormContent() {
                       </div>
                       <div className="text-right">
                         {pricePreview.discountPercent > 0 && (
-                          <p className="text-sm line-through text-muted-foreground">
+                          <p className="text-sm line-through text-primary-light">
                             {formatPrice(pricePreview.basePrice)}
                           </p>
                         )}
-                        <p className="text-2xl font-bold text-primary-dark">
+                        <p className="text-2xl font-bold text-primary">
                           {priceLoading
                             ? "..."
                             : formatPrice(pricePreview.finalPrice)}
@@ -434,7 +466,7 @@ function BookingFormContent() {
             {/* ═══════════════════════════════════════════════ */}
             {/*  PERSONAL DETAILS SECTION                      */}
             {/* ═══════════════════════════════════════════════ */}
-            <Card className="shadow-xl rounded-2xl p-6 lg:p-8 bg-card text-card-foreground">
+            <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
               <CardHeader className="p-0">
                 <CardTitle className="flex items-center gap-2 text-lg font-bold mb-4">
                   <User className="h-6 w-6 text-primary" />
@@ -453,7 +485,7 @@ function BookingFormContent() {
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             placeholder="John Smith"
                             className="pl-9"
@@ -477,7 +509,7 @@ function BookingFormContent() {
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             type="email"
                             placeholder="john@example.com"
@@ -503,7 +535,7 @@ function BookingFormContent() {
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             type="tel"
                             placeholder="+44 7700 900000"
@@ -523,7 +555,7 @@ function BookingFormContent() {
             {/* ═══════════════════════════════════════════════ */}
             {/*  VEHICLE DETAILS SECTION                       */}
             {/* ═══════════════════════════════════════════════ */}
-            <Card className="shadow-xl rounded-2xl p-6 lg:p-8 bg-card text-card-foreground">
+            <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
               <CardHeader className="p-0">
                 <CardTitle className="flex items-center gap-2 text-lg font-bold mb-4">
                   <Car className="h-6 w-6 text-primary" />
@@ -542,7 +574,7 @@ function BookingFormContent() {
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             placeholder="e.g. Toyota"
                             className="pl-9"
@@ -566,7 +598,7 @@ function BookingFormContent() {
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Car className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Car className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             placeholder="e.g. Corolla"
                             className="pl-9"
@@ -591,7 +623,7 @@ function BookingFormContent() {
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             placeholder="e.g. AB12 CDE"
                             className="pl-9 uppercase"
@@ -615,7 +647,7 @@ function BookingFormContent() {
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Palette className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Palette className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             placeholder="e.g. Silver"
                             className="pl-9"
@@ -633,15 +665,15 @@ function BookingFormContent() {
             {/* ═══════════════════════════════════════════════ */}
             {/*  FLIGHT DETAILS SECTION (OPTIONAL)             */}
             {/* ═══════════════════════════════════════════════ */}
-            <Card className="shadow-xl rounded-2xl p-6 lg:p-8 bg-card text-card-foreground">
+            <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
               <CardHeader className="p-0">
                 <CardTitle className="flex items-center gap-2 text-lg font-bold mb-4">
                   <PlaneTakeoff className="h-6 w-6 text-primary" />
                   Flight Details
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <CardDescription>
                   Optional — helps us coordinate your parking
-                </p>
+                </CardDescription>
               </CardHeader>
               <CardContent className="grid sm:grid-cols-2 gap-5 p-0">
                 {/* Departure Terminal */}
@@ -653,7 +685,7 @@ function BookingFormContent() {
                       <FormLabel>Departure Terminal</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <PlaneTakeoff className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <PlaneTakeoff className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             placeholder="e.g. T2"
                             className="pl-9"
@@ -675,7 +707,7 @@ function BookingFormContent() {
                       <FormLabel>Departure Flight No.</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <PlaneTakeoff className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <PlaneTakeoff className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             placeholder="e.g. BA123"
                             className="pl-9"
@@ -697,7 +729,7 @@ function BookingFormContent() {
                       <FormLabel>Arrival Terminal</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <PlaneLanding className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <PlaneLanding className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             placeholder="e.g. T5"
                             className="pl-9"
@@ -719,7 +751,7 @@ function BookingFormContent() {
                       <FormLabel>Arrival Flight No.</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <PlaneLanding className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <PlaneLanding className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             placeholder="e.g. BA456"
                             className="pl-9"
@@ -737,7 +769,7 @@ function BookingFormContent() {
             {/* ── submit button ────────────────────────────── */}
             <Button
               type="submit"
-              className="w-full text-base font-semibold"
+              className="w-full text-base font-semibold rounded-2xl"
               disabled={mutation.isPending}
             >
               {mutation.isPending ? (

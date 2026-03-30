@@ -5,33 +5,22 @@ import {
   PaginatedResponse,
   PriceCalculation,
   PricingConfig,
-  Slot,
 } from "@/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 const BUSINESS_ID =
   process.env.NEXT_PUBLIC_BUSINESS_ID || "69c58c8616860ff720b40e4c";
-class ApiClient {
-  private getToken(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("parkpro_token");
-  }
 
+class ApiClient {
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
   ): Promise<T> {
-    const token = this.getToken();
     const headers: Record<string, string> = {
       "X-Business-Id": BUSINESS_ID,
       "Content-Type": "application/json",
       ...((options.headers as Record<string, string>) || {}),
-      // credentials: "include",
     };
-
-    // if (token) {
-    //   headers["Authorization"] = `Bearer ${token}`;
-    // }
 
     const res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
@@ -53,7 +42,12 @@ class ApiClient {
     return res.json();
   }
 
-  // Public booking endpoints
+  // ── Public booking endpoints ───────────────────────────────────────
+
+  async getBookingStatus(): Promise<ApiResponse<{ bookingEnabled: boolean }>> {
+    return this.request("/bookings/status");
+  }
+
   async createBooking(
     data: Record<string, unknown>,
   ): Promise<ApiResponse<Booking>> {
@@ -80,7 +74,8 @@ class ApiClient {
     );
   }
 
-  // Auth
+  // ── Auth ───────────────────────────────────────────────────────────
+
   async login(
     email: string,
     password: string,
@@ -94,12 +89,11 @@ class ApiClient {
   }
 
   async logout() {
-    return this.request("/admin/logout", {
-      method: "POST",
-    });
+    return this.request("/admin/logout", { method: "POST" });
   }
 
-  // Admin endpoints
+  // ── Admin endpoints ────────────────────────────────────────────────
+
   async getDashboard(): Promise<ApiResponse<DashboardStats>> {
     return this.request("/admin/dashboard");
   }
@@ -134,23 +128,16 @@ class ApiClient {
     return this.request(`/admin/bookings/export${searchParams}`);
   }
 
-  async getSlots(status?: string): Promise<
-    ApiResponse<{
-      slots: Slot[];
-      stats: { total: number; available: number; occupied: number };
-    }>
-  > {
-    const searchParams = status ? `?status=${status}` : "";
-    return this.request(`/admin/slots${searchParams}`);
+  async getBookingToggle(): Promise<ApiResponse<{ bookingEnabled: boolean }>> {
+    return this.request("/admin/booking-toggle");
   }
 
-  async updateSlot(
-    id: string,
-    status: "available" | "occupied",
-  ): Promise<ApiResponse<Slot>> {
-    return this.request(`/admin/slots/${id}`, {
+  async setBookingToggle(
+    bookingEnabled: boolean,
+  ): Promise<ApiResponse<{ bookingEnabled: boolean }>> {
+    return this.request("/admin/booking-toggle", {
       method: "PATCH",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ bookingEnabled }),
     });
   }
 

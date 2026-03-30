@@ -5,9 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --primary: oklch(0.205 0 0);
-  --primary-light: #2d5f8b;
-  --primary-dark: #142a45;
+  --primary: oklch(70.624% 0.19575 46.149);
+  --primary-light: oklch(75.237% 0.16907 53.499);
+  --input: oklch(98.069% 0.01164 59.289);
+  --placeholder: oklch(73.489% 0.17694 50.483);
   --accent: oklch(0.97 0 0);
   --accent-light: #fbbf24;
   --success: #10b981;
@@ -25,7 +26,7 @@
   --secondary-foreground: oklch(0.205 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --input: oklch(0.922 0 0);
+  /* --input: oklch(0.922 0 0); */
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -47,9 +48,9 @@
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-light: #60a5fa;
-  --primary-dark: #2563eb;
+  --primary: oklch(70.624% 0.19575 46.149);
+  --primary-light: oklch(75.237% 0.16907 53.499);
+  --input: oklch(98.069% 0.01164 59.289);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
   --border: oklch(1 0 0 / 10%);
@@ -63,7 +64,7 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --input: oklch(1 0 0 / 15%);
+  /* --input: oklch(1 0 0 / 15%); */
   --ring: oklch(0.556 0 0);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -219,6 +220,47 @@ html {
 .dark .glass {
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.clip-main {
+  clip-path: polygon(80% 0, 100% 0, 100% 100%, 55% 100%);
+}
+
+.clip-stripe {
+  clip-path: polygon(60% 0, 65% 0, 40% 100%, 35% 100%);
+}
+
+.diagonal-bg {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.15) 0px,
+    rgba(249, 115, 22, 0.15) 8px,
+    transparent 8px,
+    transparent 120px
+  );
+}
+
+.zigzag-bg {
+  background-image:
+    repeating-linear-gradient(
+      135deg,
+      var(--primary) 0px,
+      var(--primary) 6px,
+      transparent 6px,
+      transparent 140px
+    ),
+    repeating-linear-gradient(
+      45deg,
+      var(--primary) 0px,
+      var(--primary) 6px,
+      transparent 6px,
+      transparent 140px
+    );
+}
+
+.zigzag-svg {
+  background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 60 L60 0 L120 60 L60 120 Z' fill='none' stroke='rgba(249,115,22,0.25)' stroke-width='4'/%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
 @layer base {

@@ -13,16 +13,22 @@ import { CheckCircle2 } from "lucide-react";
 
 export default function ConfirmationPage() {
   const router = useRouter();
-  const [booking, setBooking] = useState<Booking | null>(null);
+  const [booking] = useState<Booking | null>(() => {
+    if (typeof window === "undefined") return null;
+
+    try {
+      const data = sessionStorage.getItem("lastBooking");
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  });
 
   useEffect(() => {
-    const data = sessionStorage.getItem("lastBooking");
-    if (data) {
-      setBooking(JSON.parse(data));
-    } else {
+    if (!booking) {
       router.push("/book");
     }
-  }, [router]);
+  }, [booking, router]);
 
   if (!booking) {
     return (
@@ -53,7 +59,7 @@ export default function ConfirmationPage() {
 
         {/* Tracking number */}
 
-        <Card className="text-center animate-in fade-in p-6">
+        <Card className="rounded-2xl p-6 text-center flex flex-col items-center lg:p-8 bg-card text-card-foreground border border-primary ring-0">
           <CardContent className="p-0 space-y-2">
             <p className="text-sm text-muted-foreground font-medium">
               YOUR TRACKING NUMBER
@@ -68,17 +74,12 @@ export default function ConfirmationPage() {
         </Card>
 
         {/* Booking details */}
-        <Card className="p-6">
+        <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
           <CardHeader className="p-0">
-            <CardTitle className="text-lg">Booking Details</CardTitle>
+            <CardTitle className="text-lg font-bold">Booking Details</CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-2 p-0">
-            <DetailRow
-              label="Parking Slot"
-              value={`Slot ${booking.slotNumber}`}
-              highlight
-            />
+          <CardContent className="space-y-2.5 p-0">
             <DetailRow
               label="Drop-off"
               value={formatDateTime(booking.bookedStartTime)}
@@ -94,7 +95,7 @@ export default function ConfirmationPage() {
             />
             <DetailRow label="Registration" value={booking.carNumber} />
 
-            <Separator />
+            <Separator className="bg-primary-light" />
 
             <div className="flex justify-between items-center">
               <span className="font-semibold">Total Price</span>
@@ -144,16 +145,9 @@ function DetailRow({
 }) {
   return (
     <div className="flex justify-between items-center py-1">
-      <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-        {label}
-      </span>
+      <span className="text-sm text-primary-light">{label}</span>
       <span
-        className={`text-sm font-semibold ${highlight ? "px-3 py-1 rounded-full text-white" : ""}`}
-        style={
-          highlight
-            ? { background: "var(--primary)" }
-            : { color: "var(--foreground)" }
-        }
+        className={`text-sm font-semibold text-primary ${highlight ? "px-3 py-1 rounded-full text-white bg-primary" : ""}`}
       >
         {value}
       </span>

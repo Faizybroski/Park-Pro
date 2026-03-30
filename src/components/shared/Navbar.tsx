@@ -22,8 +22,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300"
-      style={{ background: "var(--background)", borderColor: "var(--border)" }}
+      className="fixed top-0 left-0 right-0 z-50 border transition-all duration-300 rounded-b-4xl bg-background backdrop-blur-lg border-primary"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -63,7 +62,7 @@ export default function Navbar() {
             {/* <ThemeToggle /> */}
             <Link
               href="/book"
-              className="px-5 py-2.5 rounded-lg text-white text-sm font-semibold transition-all duration-200 hover:opacity-90 hover:scale-105 active:scale-95"
+              className="px-5 py-2.5 rounded-full text-white text-sm font-semibold transition-all duration-200 hover:opacity-90 hover:scale-105 active:scale-95"
               style={{
                 background:
                   "linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)",
@@ -108,11 +107,8 @@ export default function Navbar() {
       {/* Mobile menu */}
       {isOpen && (
         <div
-          className="md:hidden border-t animate-fade-in"
-          style={{
-            background: "var(--background)",
-            borderColor: "var(--border)",
-          }}
+          className="md:hidden border-t animate-fade-in border-border bg-background rounded-b-4xl"
+         
         >
           <div className="px-4 py-3 space-y-1">
             {navLinks.map(({ href, label }) => (
