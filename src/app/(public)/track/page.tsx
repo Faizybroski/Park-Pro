@@ -118,8 +118,7 @@ function TrackContent() {
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl px-8 py-3.5 font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
-              style={{ background: "var(--primary)" }}
+              className="rounded-full px-8 py-3.5 font-bold text-white transition-all hover:opacity-90 disabled:opacity-50 bg-primary"
             >
               {loading ? "..." : "Track"}
             </button>

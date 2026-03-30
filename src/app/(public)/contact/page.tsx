@@ -103,8 +103,8 @@ export default function ContactPage() {
       </section>
       <section className="py-16 max-w-4xl mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-8">
-          <Card className="p-6">
-            <CardHeader className="p-0">
+          <Card className="rounded-2xl border border-primary bg-card p-6 text-center text-card-foreground ring-0 lg:p-8">
+              <CardHeader className="p-0">
               <CardTitle className="text-xl font-bold mb-6 text-foreground">
                 Send us a message
               </CardTitle>
@@ -170,6 +170,9 @@ export default function ContactPage() {
                           <Textarea
                             rows={4}
                             placeholder="Type your message..."
+                            className="rounded-2xl border border-primary-light/10 bg-input
+text-primary
+placeholder:text-primary/80"
                             {...field}
                           />
                         </FormControl>
