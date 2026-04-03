@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { ShieldCheck, Star, BadgeDollarSign } from "lucide-react";
-import { DiagonalStripesBg } from "@/components/shared/DiognalStripeBg";
-import { AngularAccent } from "@/components/shared/AngularAccent";
+import PageHero from "@/components/shared/PageHero";
 
 export const metadata: Metadata = {
   title: "About Us - ParkPro",
@@ -35,20 +34,10 @@ const items = [
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
-      <section
-        className="py-20"
-        style={{
-          background:
-            "linear-gradient(135deg, var(--primary-dark, #142a45), var(--primary))",
-        }}
-      >
-        <div className="max-w-4xl mx-auto px-4 text-center text-white">
-          <h1 className="text-4xl font-bold mb-4">About ParkPro</h1>
-          <p className="text-lg opacity-80">
-            Your trusted airport parking partner
-          </p>
-        </div>
-      </section>
+      <PageHero
+        title="About ParkPro"
+        subtitle="Your trusted airport parking partner"
+      />
       <div className="relative min-h-screen overflow-hidden bg-white">
         {/* Diagonal Background */}
         {/* <div className="absolute inset-0"> */}
@@ -71,7 +60,6 @@ export default function AboutPage() {
           )`,
           }}
         /> */}
-        <AngularAccent side={"left"} />
         <section className="relative py-16 max-w-4xl mx-auto px-4 z-10">
           {/* <DiagonalStripesBg /> */}
           {/* <div className="pointer-events-none absolute -right-28 top-1/2 h-[500px] w-64 -translate-y-1/2 rotate-[18deg] rounded bg-orange-100/50" /> */}

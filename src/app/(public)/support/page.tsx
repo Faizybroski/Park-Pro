@@ -2,17 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import PageHero from "@/components/shared/PageHero";
 
 export default function SupportPage() {
   const [submitted, setSubmitted] = useState(false);
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-      <section className="py-20" style={{ background: 'linear-gradient(135deg, var(--primary-dark, #142a45), var(--primary))' }}>
-        <div className="max-w-4xl mx-auto px-4 text-center text-white">
-          <h1 className="text-4xl font-bold mb-4">Support</h1>
-          <p className="text-lg opacity-80">Need help? We&apos;re here for you</p>
-        </div>
-      </section>
+      <PageHero title="Support" subtitle="Need help? We're here for you" />
       <section className="py-16 max-w-4xl mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-8">
           <div className="space-y-6">

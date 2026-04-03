@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { Booking } from "@/types";
+import PageHero from "@/components/shared/PageHero";
 import {
   formatDateTime,
   formatDuration,
@@ -86,26 +87,24 @@ function TrackContent() {
     : 0;
 
   const statusLabel = booking
-    ? booking.statusLabel ?? getStatusLabel(booking.status)
+    ? (booking.statusLabel ?? getStatusLabel(booking.status))
     : "";
-  const currentTotalPrice = booking?.currentTotalPrice ?? booking?.totalPrice ?? 0;
+  const currentTotalPrice =
+    booking?.currentTotalPrice ?? booking?.totalPrice ?? 0;
   const uptimeHours = booking?.uptimeHours ?? 0;
   const uptimePrice = booking?.uptimePrice ?? 0;
 
   return (
-    <div className="min-h-screen py-12" style={{ background: "var(--muted)" }}>
-      <div className="mx-auto max-w-2xl px-4">
-        <div className="mb-8 text-center">
-          <h1
-            className="mb-2 text-3xl font-bold"
-            style={{ color: "var(--foreground)" }}
-          >
-            Track Your Booking
-          </h1>
-          <p style={{ color: "var(--muted-foreground)" }}>
-            Enter your tracking number to view your booking status
-          </p>
-        </div>
+    <>
+      <PageHero
+        title="Track Your Booking"
+        subtitle="Enter your tracking number to view your booking status"
+      />
+      <div
+        className="min-h-screen py-12"
+        style={{ background: "var(--muted)" }}
+      >
+        <div className="mx-auto max-w-2xl px-4">
 
         <form onSubmit={handleSearch} className="mb-8">
           <div className="flex gap-3">
@@ -195,14 +194,20 @@ function TrackContent() {
                     value={formatDateTime(booking.actualExitTime)}
                   />
                 )}
-                <DetailRow label="Duration" value={formatDuration(totalHours)} />
+                <DetailRow
+                  label="Duration"
+                  value={formatDuration(totalHours)}
+                />
                 <DetailRow
                   label="Vehicle"
                   value={`${booking.carMake} ${booking.carModel} (${booking.carColor})`}
                 />
                 <DetailRow label="Registration" value={booking.carNumber} />
                 <Separator className="bg-primary-light" />
-                <DetailRow label="Booked Price" value={formatPrice(booking.price)} />
+                <DetailRow
+                  label="Booked Price"
+                  value={formatPrice(booking.price)}
+                />
                 {uptimeHours > 0 && (
                   <DetailRow
                     label={
@@ -240,6 +245,7 @@ function TrackContent() {
         )}
       </div>
     </div>
+    </>
   );
 }
 

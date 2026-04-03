@@ -1,13 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import type { Metadata } from "next";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import {
   Form,
   FormField,
@@ -16,16 +13,13 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
 import { CheckCircle2, AlertCircle } from "lucide-react";
+import { api } from "@/lib/api";
 
-/* ---------------- Schema ---------------- */
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
@@ -33,7 +27,8 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
-import { CheckCircle, Mail, Phone, MapPin, Clock } from "lucide-react";
+import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import PageHero from "@/components/shared/PageHero";
 
 const items = [
   {
@@ -67,6 +62,7 @@ const items = [
 ];
 
 export default function ContactPage() {
+  const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -77,34 +73,30 @@ export default function ContactPage() {
     },
   });
 
-  function onSubmit(values: FormValues) {
-    console.log(values);
+  const onSubmit = async (data: FormValues) => {
+    setLoading(true);
 
-    // simulate API
-    setTimeout(() => {
+    try {
+      await api.contact(data);
+
       setSubmitted(true);
       form.reset();
-    }, 500);
-  }
+    } catch (err: any) {
+      form.setError("root", {
+        message: err.message || "Something went wrong",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <section
-        className="py-20"
-        style={{
-          background:
-            "linear-gradient(135deg, var(--primary-dark, #142a45), var(--primary))",
-        }}
-      >
-        <div className="max-w-4xl mx-auto px-4 text-center text-white">
-          <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
-          <p className="text-lg opacity-80">We&apos;re here to help</p>
-        </div>
-      </section>
+      <PageHero title="Contact Us" subtitle="We're here to help" />
       <section className="py-16 max-w-4xl mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-8">
           <Card className="rounded-2xl border border-primary bg-card p-6 text-center text-card-foreground ring-0 lg:p-8">
-              <CardHeader className="p-0">
+            <CardHeader className="p-0">
               <CardTitle className="text-xl font-bold mb-6 text-foreground">
                 Send us a message
               </CardTitle>
@@ -170,9 +162,7 @@ export default function ContactPage() {
                           <Textarea
                             rows={4}
                             placeholder="Type your message..."
-                            className="rounded-2xl border border-primary-light/10 bg-input
-text-primary
-placeholder:text-primary/80"
+                            className="rounded-2xl border border-primary-light/10 bg-input text-primary placeholder:text-primary/80"
                             {...field}
                           />
                         </FormControl>

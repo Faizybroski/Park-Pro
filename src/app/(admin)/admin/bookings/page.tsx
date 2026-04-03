@@ -34,6 +34,8 @@ export default function BookingsPage() {
   const [updating, setUpdating] = useState(false);
   const [bookingEnabled, setBookingEnabled] = useState(true);
   const [toggleLoading, setToggleLoading] = useState(false);
+  // Actual exit time used when marking a booking completed via the detail modal
+  const [completionExitTime, setCompletionExitTime] = useState("");
 
   const fetchBookings = useCallback(
     async (
@@ -57,12 +59,10 @@ export default function BookingsPage() {
         setBookings(res.data.bookings);
         setTotalPages(res.data.totalPages);
         setTotal(res.data.total);
-        setSelectedBooking((current) =>
-          current
-            ? res.data.bookings.find((booking) => booking._id === current._id) ??
-              current
-            : null,
-        );
+        setSelectedBooking((current) => {
+          if (!current) return null;
+          return res.data.bookings.find((b) => b._id === current._id) ?? current;
+        });
       } catch (err) {
         console.error(err);
       } finally {
@@ -112,11 +112,19 @@ export default function BookingsPage() {
     }
   };
 
-  const handleStatusChange = async (id: string, newStatus: string) => {
+  const handleStatusChange = async (
+    id: string,
+    newStatus: string,
+    exitTime?: string,
+  ) => {
     setUpdating(true);
     try {
       const actualExitTime =
-        newStatus === "completed" ? new Date().toISOString() : undefined;
+        newStatus === "completed"
+          ? exitTime
+            ? new Date(exitTime).toISOString()
+            : new Date().toISOString()
+          : undefined;
 
       await api.updateBookingStatus(id, newStatus, actualExitTime);
       await fetchBookings(false);
@@ -308,7 +316,13 @@ export default function BookingsPage() {
             return (
               <div
                 key={booking._id}
-                onClick={() => setSelectedBooking(booking)}
+                onClick={() => {
+                  setSelectedBooking(booking);
+                  // Pre-fill exit time with now (admin can adjust if needed)
+                  setCompletionExitTime(
+                    new Date().toISOString().slice(0, 16),
+                  );
+                }}
                 className="mb-3 flex cursor-pointer items-center justify-between gap-4 rounded-2xl border p-4 transition-all hover:shadow-md"
                 style={{
                   borderColor: "var(--border)",
@@ -571,10 +585,11 @@ export default function BookingsPage() {
               </div>
             </div>
 
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 space-y-3">
               {selectedBooking.status === "upcoming" && (
-                <>
+                <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() =>
                       void handleStatusChange(selectedBooking._id, "active")
                     }
@@ -586,6 +601,7 @@ export default function BookingsPage() {
                       : "Waiting for start time"}
                   </button>
                   <button
+                    type="button"
                     onClick={() =>
                       void handleStatusChange(selectedBooking._id, "cancelled")
                     }
@@ -594,18 +610,46 @@ export default function BookingsPage() {
                   >
                     Cancel
                   </button>
-                </>
+                </div>
               )}
               {selectedBooking.status === "active" && (
-                <button
-                  onClick={() =>
-                    void handleStatusChange(selectedBooking._id, "completed")
-                  }
-                  disabled={updating}
-                  className="flex-1 rounded-xl bg-blue-500 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-60"
-                >
-                  Mark Completed
-                </button>
+                <div className="space-y-2">
+                  <div>
+                    <label
+                      htmlFor="exitTime"
+                      className="mb-1 block text-xs font-medium"
+                      style={{ color: "var(--muted-foreground)" }}
+                    >
+                      Actual Pick-up Date &amp; Time
+                    </label>
+                    <input
+                      id="exitTime"
+                      type="datetime-local"
+                      value={completionExitTime}
+                      onChange={(e) => setCompletionExitTime(e.target.value)}
+                      className="w-full rounded-xl border px-3 py-2 text-sm"
+                      style={{
+                        background: "var(--input)",
+                        borderColor: "var(--border)",
+                        color: "var(--foreground)",
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void handleStatusChange(
+                        selectedBooking._id,
+                        "completed",
+                        completionExitTime,
+                      )
+                    }
+                    disabled={updating || !completionExitTime}
+                    className="w-full rounded-xl bg-blue-500 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-60"
+                  >
+                    {updating ? "Saving…" : "Mark Completed"}
+                  </button>
+                </div>
               )}
             </div>
           </div>

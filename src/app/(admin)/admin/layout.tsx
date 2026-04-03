@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -47,7 +48,7 @@ export default function AdminLayout({
     <div className="min-h-screen flex" style={{ background: "var(--muted)" }}>
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 bg-primary-light ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 bg-gradient-to-b from-primary-light to-primary ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 lg:static lg:w-64 flex-shrink-0`}
       >
@@ -55,13 +56,18 @@ export default function AdminLayout({
           {/* Logo */}
           <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
             <Link href="/admin/dashboard" className="flex items-center gap-2">
-              <div
+              {/* <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs"
                 style={{ background: "linear-gradient(135deg, #3b82f6, #60a5fa)" }}
               >
                 PP
               </div>
-              <span className="text-lg font-bold text-white">ParkPro</span>
+              <span className="text-lg font-bold text-white">ParkPro</span> */}
+              <Image src="/logo.svg" alt="Logo" width={32} height={32} />
+              <p className="flex items-center text-lg text-primary uppercase leading-none">
+                <span className="font-bold">Park</span>
+                <span className="font-normal">Pro</span>
+              </p>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -133,11 +139,24 @@ export default function AdminLayout({
             className="lg:hidden mr-4 p-2 rounded-lg"
             style={{ color: "var(--foreground)" }}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           </button>
-          <h2 className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
+          <h2
+            className="text-lg font-bold"
+            style={{ color: "var(--foreground)" }}
+          >
             {sidebarLinks.find((l) => l.href === pathname)?.label || "Admin"}
           </h2>
         </header>

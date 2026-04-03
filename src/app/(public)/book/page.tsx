@@ -10,6 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
 import { DateTimePicker } from "@/components/ui/DatePicker";
+import PageHero from "@/components/shared/PageHero";
 import {
   Form,
   FormControl,
@@ -250,14 +251,14 @@ function BookingFormContent() {
   // ── submit mutation ────────────────────────────────────────────
   const mutation = useMutation({
     mutationFn: (data: BookingFormValues) =>
-      api.createBooking({
+      api.createCheckoutSession({
         ...data,
         bookedStartTime: new Date(data.bookedStartTime).toISOString(),
         bookedEndTime: new Date(data.bookedEndTime).toISOString(),
       }),
     onSuccess: (res) => {
-      sessionStorage.setItem("lastBooking", JSON.stringify(res.data));
-      router.push("/book/confirmation");
+      // Redirect to Stripe hosted checkout page
+      window.location.href = res.data.checkoutUrl;
     },
   });
 
@@ -287,17 +288,13 @@ function BookingFormContent() {
   }
 
   return (
-    <div className="min-h-screen py-10 bg-muted/40">
-      <div className="max-w-3xl mx-auto px-4">
-        {/* ── header ─────────────────────────────────────────── */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Book Your Parking
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Fill in the details below to reserve your airport parking space
-          </p>
-        </div>
+    <>
+      <PageHero
+        title="Book Your Parking"
+        subtitle="Fill in the details below to reserve your airport parking space"
+      />
+      <div className="min-h-screen py-10 bg-muted/40">
+        <div className="max-w-3xl mx-auto px-4">
 
         <Form {...form}>
           <form
@@ -775,12 +772,12 @@ function BookingFormContent() {
               {mutation.isPending ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Processing…
+                  Redirecting to payment…
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5" />
-                  Confirm Booking
+                  Pay Now
                   {pricePreview
                     ? ` — ${formatPrice(pricePreview.finalPrice)}`
                     : ""}
@@ -791,6 +788,7 @@ function BookingFormContent() {
         </Form>
       </div>
     </div>
+    </>
   );
 }
 

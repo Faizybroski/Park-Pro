@@ -1,5 +1,6 @@
 export type BookingStatus = 'upcoming' | 'active' | 'completed' | 'cancelled';
 export type LateChargeMode = 'none' | 'pending' | 'finalized';
+export type PaymentStatus = 'awaiting_payment' | 'paid';
 
 export interface Booking {
   _id: string;
@@ -19,6 +20,8 @@ export interface Booking {
   arrivalTerminal?: string;
   arrivalFlightNo?: string;
   status: BookingStatus;
+  paymentStatus?: PaymentStatus;
+  stripeSessionId?: string;
   statusLabel?: string;
   canActivate?: boolean;
   canComplete?: boolean;
@@ -65,6 +68,9 @@ export interface DashboardStats {
   completedBookings: number;
   cancelledBookings: number;
   totalRevenue: number;
+  overtimeRevenue: number;
+  stripeRevenue: number;
+  baseRevenue: number;
   todayBookings: number;
   bookingEnabled: boolean;
 }

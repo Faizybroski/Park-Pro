@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -21,14 +22,12 @@ export default function Navbar() {
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <nav
-      className="fixed top-0 left-0 right-0 z-50 border transition-all duration-300 rounded-b-4xl bg-background backdrop-blur-lg border-primary"
-    >
+    <nav className="fixed top-0 left-0 right-0 z-50 border transition-all duration-300 rounded-b-4xl bg-background backdrop-blur-lg border-primary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div
+            {/* <div
               className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm"
               style={{
                 background:
@@ -36,8 +35,12 @@ export default function Navbar() {
               }}
             >
               PP
-            </div>
-            <span className="text-xl font-bold gradient-text">ParkPro</span>
+            </div> */}
+            <Image src="/logo.svg" alt="Logo" width={32} height={32} />
+            <p className="flex items-center text-lg text-primary uppercase leading-none">
+              <span className="font-bold">Park</span>
+              <span className="font-normal">Pro</span>
+            </p>
           </Link>
 
           {/* Desktop links */}
@@ -58,7 +61,7 @@ export default function Navbar() {
           </div>
 
           {/* Dark mode + CTA */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             {/* <ThemeToggle /> */}
             <Link
               href="/book"
@@ -75,7 +78,7 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg"
+            className="lg:hidden p-2 rounded-lg"
             style={{ color: "var(--foreground)" }}
           >
             <svg
@@ -106,10 +109,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {isOpen && (
-        <div
-          className="md:hidden border-t animate-fade-in border-border bg-background rounded-b-4xl"
-         
-        >
+        <div className="lg:hidden border-t animate-fade-in border-border bg-background rounded-b-4xl">
           <div className="px-4 py-3 space-y-1">
             {navLinks.map(({ href, label }) => (
               <Link

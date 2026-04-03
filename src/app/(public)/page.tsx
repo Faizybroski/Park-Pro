@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   ShieldCheck,
   BadgeDollarSign,
@@ -17,13 +18,20 @@ import {
   ClipboardCheck,
   PlaneTakeoff,
   Building2,
+  Search,
   Users,
   MapPin,
-  Smartphone,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
-import {Label} from "@/components/ui/label";
+import {
+  Card,
+  CardTitle,
+  CardHeader,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { DateTimePicker } from "@/components/ui/DatePicker";
 import { api } from "@/lib/api";
 import type React from "react";
@@ -109,10 +117,30 @@ const services = [
 ];
 
 const deals = [
-  { location: "Heathrow Airport", duration: "7 days", price: "£35.00", popular: true },
-  { location: "Gatwick Airport", duration: "7 days", price: "£28.00", popular: false },
-  { location: "Stansted Airport", duration: "7 days", price: "£24.00", popular: false },
-  { location: "Manchester Airport", duration: "7 days", price: "£21.00", popular: false },
+  {
+    location: "Heathrow Airport",
+    duration: "7 days",
+    price: "£35.00",
+    popular: true,
+  },
+  {
+    location: "Gatwick Airport",
+    duration: "7 days",
+    price: "£28.00",
+    popular: false,
+  },
+  {
+    location: "Stansted Airport",
+    duration: "7 days",
+    price: "£24.00",
+    popular: false,
+  },
+  {
+    location: "Manchester Airport",
+    duration: "7 days",
+    price: "£21.00",
+    popular: false,
+  },
 ];
 
 const testimonials = [
@@ -195,11 +223,17 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════
           HERO
       ══════════════════════════════════════════════════════ */}
-      <section className="bg-background relative overflow-hidden">
-        {/* Angled orange accent shapes */}
-        <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 bg-primary/5 clip-main" />
-        <div className="pointer-events-none absolute right-0 top-0 h-full w-[30%] bg-primary/8 clip-stripe" />
-
+      {/* <section className="bg-image[url(/container.png)] relative overflow-hidden"> */}
+      <section className="bg-[url('/Container.png')] bg-cover bg-center relative overflow-hidden pt-10 lg:pt-0">
+        {/* Diagonal orange accent strips */}
+        <Image
+          src="/hero_strips.svg"
+          alt=""
+          width={1440}
+          height={900}
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover hidden md:block"
+        />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left: headline + trust badges */}
@@ -240,14 +274,14 @@ export default function HomePage() {
               <div className="flex flex-wrap gap-3">
                 <Button
                   asChild
-                  className="px-8 py-3  font-bold text-base"
+                  className="px-8 py-3  font-bold text-base w-full md:w-auto"
                 >
                   <Link href="/book">Book Now →</Link>
                 </Button>
                 <Button
                   asChild
                   variant="outline"
-                  className="px-8 py-3 rounded-full font-semibold text-base"
+                  className="px-8 py-3 rounded-full font-semibold text-base w-full md:w-auto"
                 >
                   <Link href="/track">Track Booking</Link>
                 </Button>
@@ -255,7 +289,7 @@ export default function HomePage() {
             </div>
 
             {/* Right: orange booking widget */}
-            <div className="animate-fade-in">
+            <div className="animate-fade-in hidden md:block">
               <Card className="shadow-none rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary">
                 <CardHeader className="p-0  text-primary">
                   <CardTitle className="text-xl font-bold mb-1">
@@ -293,7 +327,9 @@ export default function HomePage() {
                       <DateTimePicker value={endDate} onChange={setEndDate} />
                     </div>
 
-                    <Button className="w-full rounded-full">Check Price & Book</Button>
+                    <Button className="w-full rounded-full">
+                      Check Price & Book
+                    </Button>
                   </form>
 
                   <p className="text-xs text-muted-foreground text-center mt-3">
@@ -344,11 +380,12 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* <div className="bg-[url('/full.svg')] bg-cover"> */}
       {/* ══════════════════════════════════════════════════════
           HOW IT WORKS
       ══════════════════════════════════════════════════════ */}
-      <section className="py-20 bg-orange-50/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 relative overflow-hidden bg-primary-light/10 md:bg-transparent md:bg-[url('/left.svg')] bg-no-repeat bg-cover ">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
               How It Works
@@ -358,7 +395,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {steps.map((step, i) => {
               const Icon = step.icon;
               return (
@@ -367,7 +404,6 @@ export default function HomePage() {
                   className="relative bg-background rounded-2xl p-6 shadow-sm border border-border text-center hover:shadow-md hover:border-primary/30 transition-all duration-300"
                   style={{ animationDelay: `${i * 0.1}s` }}
                 >
-                  {/* Connector line between steps */}
                   {i < steps.length - 1 && (
                     <div className="hidden lg:block absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-6 h-0.5 bg-primary/30 z-10" />
                   )}
@@ -385,6 +421,100 @@ export default function HomePage() {
                 </div>
               );
             })}
+          </div> */}
+          <div className="relative">
+            {/* Line */}
+            {/* <div className="hidden lg:block absolute top-10 left-0 right-0 h-[2px] bg-border z-0" /> */}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 relative z-10">
+              {/* STEP 1 */}
+              <div className="text-center relative">
+                {/* Connector (RIGHT SIDE ONLY) */}
+                <div className="hidden lg:block absolute top-10 left-1/2 right-[-50%] h-[2px] bg-primary z-0" />
+
+                {/* Icon */}
+                <div className="relative inline-flex justify-center mb-6 z-10">
+                  <span className="absolute -top-2 -right-2 bg-foreground text-background text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">
+                    01
+                  </span>
+
+                  <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center">
+                      <CalendarDays className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                </div>
+
+                <h3 className="text-lg font-semibold mb-2">Enter Dates</h3>
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                  Pick your drop-off and pick-up dates and times
+                </p>
+              </div>
+
+              {/* STEP 2 */}
+              <div className="text-center relative">
+                <div className="hidden lg:block absolute top-10 left-1/2 right-[-50%] h-[2px] bg-primary z-0" />
+
+                <div className="relative inline-flex justify-center mb-6 z-10">
+                  <span className="absolute -top-2 -right-2 bg-foreground text-background text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">
+                    02
+                  </span>
+                  <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center">
+                      <ClipboardCheck className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-foreground">
+                  Fill Details
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                  Enter your car and contact information
+                </p>
+              </div>
+
+              {/* STEP 3 */}
+              <div className="text-center relative">
+                <div className="hidden lg:block absolute top-10 left-1/2 right-[-50%] h-[2px] bg-primary z-0" />
+
+                <div className="relative inline-flex justify-center mb-6 z-10">
+                  <span className="absolute -top-2 -right-2 bg-foreground text-background text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">
+                    03
+                  </span>
+                  <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center">
+                      <CheckCircle2 className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-foreground">
+                  Get Confirmed
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                  Receive instant confirmation with your slot number
+                </p>
+              </div>
+
+              {/* STEP 4 */}
+              <div className="text-center relative">
+                <div className="relative inline-flex justify-center mb-6">
+                  <span className="absolute -top-2 -right-2 bg-foreground text-background text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">
+                    04
+                  </span>
+                  <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center">
+                      <PlaneTakeoff className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-foreground">
+                  Park & Fly
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                  Drop off your car and head to the terminal
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -439,8 +569,8 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════
           OUR PARKING SERVICES
       ══════════════════════════════════════════════════════ */}
-      <section className="py-20 bg-orange-50/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 md:bg-[url('/right.svg')] relative overflow-hidden bg-no-repeat bg-cover">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
               Our Parking Services
@@ -459,14 +589,16 @@ export default function HomePage() {
                   key={i}
                   className="group bg-background rounded-2xl p-7 shadow-sm border border-border hover:shadow-md hover:border-primary/20 transition-all duration-300"
                 >
-                  <div
-                    className={`w-14 h-14 rounded-2xl ${s.bg} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}
-                  >
-                    <Icon className={`w-7 h-7 ${s.color}`} />
+                  <div className="flex items-center gap-3 mb-4">
+                    <div
+                      className={`w-14 h-14 rounded-2xl ${s.bg} flex items-center justify-center  group-hover:scale-110 transition-transform`}
+                    >
+                      <Icon className={`w-7 h-7 ${s.color}`} />
+                    </div>
+                    <h3 className="text-lg font-bold  text-foreground">
+                      {s.title}
+                    </h3>
                   </div>
-                  <h3 className="text-lg font-bold mb-2 text-foreground">
-                    {s.title}
-                  </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                     {s.desc}
                   </p>
@@ -557,8 +689,8 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════
           TESTIMONIALS
       ══════════════════════════════════════════════════════ */}
-      <section className="py-20 bg-orange-50/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 relative overflow-hidden bg-primary-light/10 md:bg-transparent md:bg-[url('/left.svg')] bg-no-repeat bg-cover">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
               Loved by Travelers
@@ -609,18 +741,92 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════
           MORE THAN JUST A PARKING SPACE  (split section)
       ══════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden">
-        <div className="grid lg:grid-cols-2">
-          {/* Left: orange panel with content */}
-          <div className="bg-primary px-8 py-16 lg:py-20 lg:px-16 flex items-center">
+      <section className="py-16 relative overflow-hidden md:bg-[url('/right.svg')] bg-no-repeat bg-cover">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
+          {/* Card Container */}
+          <div className="grid lg:grid-cols-2 rounded-3xl overflow-hidden shadow-xl">
+            {/* Left Panel */}
+            <div className="bg-gradient-to-b from-primary to-primary-light px-8 py-16 lg:px-16 flex items-center">
+              <div className="text-white lg:max-w-md">
+                <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight mb-5">
+                  More Than Just A Parking Space.
+                </h2>
+
+                <p className="text-lg opacity-90 mb-6 leading-relaxed">
+                  At ParkPro, we&apos;re committed to making your airport
+                  experience as smooth as possible — from the moment you arrive
+                  to the moment you return home.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                  {[
+                    {
+                      title: "No Hidden Fees",
+                      desc: "The price you see is the price you pay. No sneaky booking charges.",
+                      icon: CheckCircle2,
+                    },
+                    {
+                      title: "Price Match Guarantee",
+                      desc: "Find it cheaper elsewhere? We'll match it and refund the difference.",
+                      icon: CreditCard,
+                    },
+                    {
+                      title: "Book in 60 Seconds",
+                      desc: "Our streamlined checkout gets your spot confirmed instantly.",
+                      icon: Clock,
+                    },
+                    {
+                      title: "Flexible Cancellation",
+                      desc: "Plans change. Cancel up to 24 hours before for a full refund.",
+                      icon: ShieldCheck,
+                    },
+                  ].map((item, i) => {
+                    const Icon = item.icon;
+                    return (
+                      <div key={i} className="flex flex-col items-start gap-3">
+                        {/* Icon circle */}
+                        <div className="flex flex-row items-center lg:flex-col lg:items-start gap-3">
+                          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <Icon className="w-5 h-5 text-white" />
+                          </div>
+
+                          {/* Title */}
+                          <h4 className="text-white font-semibold text-lg">
+                            {item.title}
+                          </h4>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-white/80 text-sm leading-relaxed">
+                          {item.desc}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Image Panel */}
+            <div
+              className="min-h-[400px] hidden lg:block lg:min-h-full bg-cover bg-center"
+              style={{ backgroundImage: "url('/premium-service.png')" }}
+            />
+          </div>
+        </div>
+      </section>
+      {/* <section className="relative overflow-hidden ">
+        <div className="grid lg:grid-cols-2"> */}
+      {/* Left: orange panel with content */}
+      {/* <div className="bg-gradient-to-b from-primary to-primary-light px-8 py-16 lg:py-20 lg:px-16 flex items-center">
             <div className="text-white max-w-md">
               <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight mb-5">
                 More Than Just A Parking Space.
               </h2>
               <p className="text-lg opacity-85 mb-6 leading-relaxed">
                 At ParkPro, we&apos;re committed to making your airport
-                experience as smooth as possible — from the moment you arrive
-                to the moment you return home.
+                experience as smooth as possible — from the moment you arrive to
+                the moment you return home.
               </p>
               <ul className="space-y-3 mb-8">
                 {[
@@ -630,30 +836,28 @@ export default function HomePage() {
                   "Multi-day discounts available",
                   "Real-time booking tracking",
                 ].map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-sm opacity-90">
+                  <li
+                    key={item}
+                    className="flex items-center gap-2 text-sm opacity-90"
+                  >
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
                     {item}
                   </li>
                 ))}
-              </ul>
-              {/* <Button
+              </ul> */}
+      {/* <Button
                 asChild
                 className="bg-white text-primary hover:bg-primary/10 hover:text-white font-bold px-8 py-3 rounded-xl border-0"
               >
                 <Link href="/book">Start Booking →</Link>
               </Button> */}
-            </div>
-          </div>
+      {/* </div>
+          </div> */}
 
-          {/* Right: dark panel with icon graphic */}
-          <div className="bg-gradient-to-br from-gray-800 to-gray-950 min-h-[400px] flex items-center justify-center relative overflow-hidden">
-            {/* Grid pattern overlay */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.3) 40px, rgba(255,255,255,0.3) 41px), repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.3) 40px, rgba(255,255,255,0.3) 41px)`,
-              }}
-            />
+      {/* Right: dark panel with icon graphic */}
+      {/* <div className="bg-[url('/Premium-Service.png')] bg-cover bg-center min-h-[400px] flex items-center justify-center relative overflow-hidden"> */}
+      {/*Grid pattern overlay
+             <div className="absolute inset-0 opacity-10" />
             <div className="text-center text-white relative z-10 p-8">
               <div className="w-24 h-24 rounded-3xl bg-white/10 border border-white/20 flex items-center justify-center mx-auto mb-5">
                 <Car className="w-12 h-12 text-white/80" />
@@ -672,16 +876,16 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
+            </div> */}
+      {/* </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ══════════════════════════════════════════════════════
           FAQs
       ══════════════════════════════════════════════════════ */}
-      <section className="py-20 bg-background">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 relative overflow-hidden bg-primary-light/10 md:bg-transparent md:bg-[url('/left.svg')] bg-no-repeat bg-cover">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
               Frequently Asked Questions
@@ -723,11 +927,11 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════
           CTA BANNER
       ══════════════════════════════════════════════════════ */}
-      <section className="py-16 bg-primary relative overflow-hidden">
+      <section className="py-16 bg-[url('/readyToSave.svg')] bg-cover bg-center relative overflow-hidden">
+        {/* <Image src="/readyToSave.svg" alt="" width={1440} height={353} /> */}
         {/* Decorative angled shapes */}
-        <div className="pointer-events-none absolute -right-20 top-0 h-full w-64 bg-white/5 rotate-12 rounded-3xl" />
-        <div className="pointer-events-none absolute -left-16 bottom-0 h-full w-48 bg-white/5 -rotate-12 rounded-3xl" />
-
+        {/* <div className="pointer-events-none absolute -right-20 top-0 h-full w-64 bg-white/5 rotate-12 rounded-3xl" /> */}
+        {/* <div className="pointer-events-none absolute -left-16 bottom-0 h-full w-48 bg-white/5 -rotate-12 rounded-3xl" /> */}
         <div className="relative max-w-4xl mx-auto px-4 text-center text-white">
           <h2 className="text-3xl sm:text-4xl font-bold mb-3">
             Ready to Save on Airport Parking?
@@ -738,12 +942,13 @@ export default function HomePage() {
           </p>
           <Button
             asChild
-            className="bg-white text-primary hover:bg-orange-50 font-bold px-10 py-4 rounded-xl text-lg border-0"
+            className="bg-white text-primary hover:bg-primary hover:text-white font-bold px-10 py-4 rounded-xl text-lg border-0"
           >
             <Link href="/book">Book Now — From £{pricePerHour}/hr</Link>
           </Button>
         </div>
       </section>
+      {/* </div> */}
     </div>
   );
 }

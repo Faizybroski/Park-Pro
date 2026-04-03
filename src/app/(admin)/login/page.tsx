@@ -151,6 +151,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { Loader2 } from "lucide-react";
+import Image from "next/image";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -191,14 +192,21 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[linear-gradient(135deg,var(--primary-dark,#142a45)_0%,var(--primary-light,#2d5f8b)_100%)] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-r from-primary-light to-primary px-4">
       <Card className="w-full max-w-md shadow-2xl p-8">
         <CardHeader className="text-center p-0 mb-2">
-          <Link
+          {/* <Link
             href="/"
             className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-xl mx-auto mb-4 bg-[linear-gradient(135deg,var(--primary-dark,#142a45)_0%,var(--primary-light,#2d5f8b)_100%)]"
           >
             PP
+          </Link> */}
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/logo.svg" alt="Logo" width={50} height={50} />
+            <p className="flex items-center text-lg text-primary uppercase leading-none">
+              <span className="font-bold">Park</span>
+              <span className="font-normal">Pro</span>
+            </p>
           </Link>
 
           <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>

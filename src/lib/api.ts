@@ -57,6 +57,19 @@ class ApiClient {
     });
   }
 
+  async createCheckoutSession(
+    data: Record<string, unknown>,
+  ): Promise<ApiResponse<{ checkoutUrl: string; trackingNumber: string }>> {
+    return this.request("/payments/create-checkout-session", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getBookingBySession(sessionId: string): Promise<ApiResponse<Booking>> {
+    return this.request(`/payments/session/${sessionId}`);
+  }
+
   async getPricePerHour(): Promise<ApiResponse<number>> {
     return this.request("/bookings/pricePerHour");
   }
@@ -150,6 +163,13 @@ class ApiClient {
     discountRules: { minDays: number; percentage: number }[];
   }): Promise<ApiResponse<PricingConfig>> {
     return this.request("/admin/pricing", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async contact(data: { name: string; email: string; message: string }) {
+    return this.request("/contact", {
       method: "POST",
       body: JSON.stringify(data),
     });
