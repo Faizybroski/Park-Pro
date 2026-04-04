@@ -171,15 +171,26 @@ type Props = {
   onChange: (value: string) => void;
 };
 
+// const generateTimeSlots = () => {
+//   const slots: string[] = [];
+//   for (let hour = 0; hour < 24; hour++) {
+//     for (let min = 0; min < 60; min += 15) {
+//       const h = hour.toString().padStart(2, "0");
+//       const m = min.toString().padStart(2, "0");
+//       slots.push(`${h}:${m}`);
+//     }
+//   }
+//   return slots;
+// };
+
 const generateTimeSlots = () => {
   const slots: string[] = [];
+
   for (let hour = 0; hour < 24; hour++) {
-    for (let min = 0; min < 60; min += 15) {
-      const h = hour.toString().padStart(2, "0");
-      const m = min.toString().padStart(2, "0");
-      slots.push(`${h}:${m}`);
-    }
+    const h = hour.toString().padStart(2, "0");
+    slots.push(`${h}:00`);
   }
+
   return slots;
 };
 
@@ -187,23 +198,32 @@ export function DateTimePicker({ value, onChange }: Props) {
   const parsed = value ? new Date(value) : undefined;
 
   const [date, setDate] = useState<Date | undefined>(parsed);
+  // const [time, setTime] = useState(
+  //   parsed
+  //     ? `${parsed.getHours().toString().padStart(2, "0")}:${parsed
+  //         .getMinutes()
+  //         .toString()
+  //         .padStart(2, "0")}`
+  //     : "",
+  // );
   const [time, setTime] = useState(
-    parsed
-      ? `${parsed.getHours().toString().padStart(2, "0")}:${parsed
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}`
-      : "",
+    parsed ? `${parsed.getHours().toString().padStart(2, "0")}:00` : "",
   );
 
   const update = (d?: Date, t?: string) => {
     if (!d && !date) return;
 
     const finalDate = new Date(d || date!);
-    const [h, m] = (t || time || "00:00").split(":");
+    // const [h, m] = (t || time || "00:00").split(":");
+
+    // finalDate.setHours(Number(h));
+    // finalDate.setMinutes(Number(m));
+    const [h] = (t || time || "00:00").split(":");
 
     finalDate.setHours(Number(h));
-    finalDate.setMinutes(Number(m));
+    finalDate.setMinutes(0);
+    finalDate.setSeconds(0);
+    finalDate.setMilliseconds(0);
 
     onChange(finalDate.toISOString());
   };

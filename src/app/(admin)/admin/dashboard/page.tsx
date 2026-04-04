@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { api } from "@/lib/api";
 import { DashboardStats } from "@/types";
 import { formatPrice } from "@/lib/utils";
@@ -103,12 +104,12 @@ export default function DashboardPage() {
           {!stats.bookingEnabled && " — customers cannot make new reservations."}{" "}
           {stats.bookingEnabled && "— customers can book parking spaces."}
         </span>
-        <a
+        <Link
           href="/admin/bookings"
           className="ml-auto underline text-xs font-semibold opacity-70 hover:opacity-100"
         >
           Manage →
-        </a>
+        </ Link>
       </div>
 
       {/* KPI Cards */}
