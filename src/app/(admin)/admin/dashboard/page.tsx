@@ -11,6 +11,9 @@ import {
   CalendarDays,
   ToggleRight,
   ToggleLeft,
+  CreditCard,
+  Clock,
+  TrendingUp,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -62,7 +65,7 @@ export default function DashboardPage() {
       bg: "bg-green-100",
     },
     {
-      label: "Revenue",
+      label: "Total Revenue",
       value: formatPrice(stats.totalRevenue),
       icon: BadgeDollarSign,
       color: "text-yellow-600",
@@ -76,6 +79,8 @@ export default function DashboardPage() {
       bg: "bg-purple-100",
     },
   ];
+
+  const overtimeBookingsExist = stats.overtimeRevenue > 0;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -130,9 +135,80 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* Secondary Stats */}
+      {/* Revenue Breakdown + Booking Status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Booking status breakdown */}
+
+        {/* Revenue Breakdown */}
+        <div
+          className="rounded-2xl border p-6"
+          style={{ background: "var(--card)", borderColor: "var(--border)" }}
+        >
+          <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--foreground)" }}>
+            Revenue Breakdown
+          </h3>
+          <div className="space-y-3">
+
+            {/* Stripe Payments */}
+            <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: "var(--muted)" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                  <CreditCard className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                    Stripe Payments
+                  </p>
+                  <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    Collected online at checkout
+                  </p>
+                </div>
+              </div>
+              <p className="text-lg font-bold text-blue-600">
+                {formatPrice(stats.stripeRevenue)}
+              </p>
+            </div>
+
+            {/* Overtime Charges */}
+            <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: "var(--muted)" }}>
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${overtimeBookingsExist ? "bg-amber-100" : "bg-gray-100"}`}>
+                  <Clock className={`w-4 h-4 ${overtimeBookingsExist ? "text-amber-600" : "text-gray-400"}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                    Overtime Charges
+                  </p>
+                  <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    Late pick-up surcharges
+                  </p>
+                </div>
+              </div>
+              <p className={`text-lg font-bold ${overtimeBookingsExist ? "text-amber-600" : ""}`} style={overtimeBookingsExist ? {} : { color: "var(--muted-foreground)" }}>
+                {formatPrice(stats.overtimeRevenue)}
+              </p>
+            </div>
+
+            {/* Divider + Total */}
+            <div
+              className="border-t pt-3 flex items-center justify-between"
+              style={{ borderColor: "var(--border)" }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-yellow-100 flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-4 h-4 text-yellow-600" />
+                </div>
+                <p className="text-sm font-bold" style={{ color: "var(--foreground)" }}>
+                  Total Revenue
+                </p>
+              </div>
+              <p className="text-xl font-bold text-yellow-600">
+                {formatPrice(stats.totalRevenue)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Booking Status Overview */}
         <div
           className="rounded-2xl border p-6"
           style={{ background: "var(--card)", borderColor: "var(--border)" }}
@@ -160,44 +236,33 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Quick stats */}
-        <div
-          className="rounded-2xl border p-6"
-          style={{ background: "var(--card)", borderColor: "var(--border)" }}
-        >
-          <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--foreground)" }}>
-            Quick Stats
-          </h3>
-          <div className="space-y-4">
-            {[
-              { label: "Today's Bookings", value: String(stats.todayBookings) },
-              {
-                label: "Avg. Revenue Per Booking",
-                value:
-                  stats.completedBookings + stats.activeBookings > 0
-                    ? formatPrice(
-                        stats.totalRevenue /
-                          (stats.completedBookings + stats.activeBookings),
-                      )
-                    : "£0.00",
-              },
-              { label: "Total Revenue", value: formatPrice(stats.totalRevenue) },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="p-3 rounded-xl"
-                style={{ background: "var(--muted)" }}
-              >
-                <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-                  {item.label}
-                </p>
-                <p className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
-                  {item.value}
-                </p>
-              </div>
-            ))}
+          {/* Quick Stats below the status list */}
+          <div
+            className="mt-5 border-t pt-4 space-y-3"
+            style={{ borderColor: "var(--border)" }}
+          >
+            <div className="p-3 rounded-xl" style={{ background: "var(--muted)" }}>
+              <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                Today's Bookings
+              </p>
+              <p className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
+                {stats.todayBookings}
+              </p>
+            </div>
+            <div className="p-3 rounded-xl" style={{ background: "var(--muted)" }}>
+              <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                Avg. Revenue Per Booking
+              </p>
+              <p className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
+                {stats.completedBookings + stats.activeBookings > 0
+                  ? formatPrice(
+                      stats.totalRevenue /
+                        (stats.completedBookings + stats.activeBookings),
+                    )
+                  : "£0.00"}
+              </p>
+            </div>
           </div>
         </div>
       </div>
