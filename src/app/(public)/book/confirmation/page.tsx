@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Booking } from "@/types";
-import { formatDateTime, formatPrice, formatDuration } from "@/lib/utils";
+import { formatDateTime, formatDayCount, formatPrice } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -37,11 +37,6 @@ export default function ConfirmationPage() {
       </div>
     );
   }
-
-  const totalHours =
-    (new Date(booking.bookedEndTime).getTime() -
-      new Date(booking.bookedStartTime).getTime()) /
-    (1000 * 60 * 60);
 
   return (
     <div className="min-h-screen py-12 bg-muted">
@@ -88,7 +83,10 @@ export default function ConfirmationPage() {
               label="Pick-up"
               value={formatDateTime(booking.bookedEndTime)}
             />
-            <DetailRow label="Duration" value={formatDuration(totalHours)} />
+            <DetailRow
+              label="Booked Days"
+              value={formatDayCount(booking.bookedDays)}
+            />
             <DetailRow
               label="Vehicle"
               value={`${booking.carMake} ${booking.carModel} (${booking.carColor})`}
@@ -105,13 +103,11 @@ export default function ConfirmationPage() {
                   {formatPrice(booking.totalPrice)}
                 </span>
 
-                {booking.discountPercent > 0 && (
-                  <div className="mt-1">
-                    <Badge variant="secondary">
-                      {booking.discountPercent}% Discount
-                    </Badge>
-                  </div>
-                )}
+                <div className="mt-1">
+                  <Badge variant="secondary">
+                    {formatDayCount(booking.bookedDays)}
+                  </Badge>
+                </div>
               </div>
             </div>
           </CardContent>

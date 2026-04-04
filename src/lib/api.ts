@@ -70,7 +70,7 @@ class ApiClient {
     return this.request(`/payments/session/${sessionId}`);
   }
 
-  async getPricePerHour(): Promise<ApiResponse<number>> {
+  async getStartingDayPrice(): Promise<ApiResponse<number>> {
     return this.request("/bookings/pricePerHour");
   }
 
@@ -159,8 +159,7 @@ class ApiClient {
   }
 
   async updatePricing(data: {
-    pricePerHour: number;
-    discountRules: { minDays: number; percentage: number }[];
+    firstTenDayPrices: number[];
   }): Promise<ApiResponse<PricingConfig>> {
     return this.request("/admin/pricing", {
       method: "POST",

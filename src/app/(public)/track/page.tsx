@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { Booking } from "@/types";
 import PageHero from "@/components/shared/PageHero";
 import {
+  formatDayCount,
   formatDateTime,
   formatDuration,
   formatPrice,
@@ -80,18 +81,12 @@ function TrackContent() {
     await fetchBooking(trackingNumber);
   };
 
-  const totalHours = booking
-    ? (new Date(booking.bookedEndTime).getTime() -
-        new Date(booking.bookedStartTime).getTime()) /
-      (1000 * 60 * 60)
-    : 0;
-
   const statusLabel = booking
     ? (booking.statusLabel ?? getStatusLabel(booking.status))
     : "";
   const currentTotalPrice =
     booking?.currentTotalPrice ?? booking?.totalPrice ?? 0;
-  const uptimeHours = booking?.uptimeHours ?? 0;
+  const uptimeDays = booking?.uptimeDays ?? 0;
   const uptimePrice = booking?.uptimePrice ?? 0;
 
   return (
@@ -150,13 +145,13 @@ function TrackContent() {
                   className="mt-4 rounded-xl p-3"
                   style={{ background: "var(--muted)" }}
                 >
-                  {booking.isOvertimeRunning && uptimeHours > 0 ? (
+                  {booking.isOvertimeRunning && uptimeDays > 0 ? (
                     <>
                       <p className="font-semibold text-red-600">
-                        Uptime running: {formatDuration(uptimeHours)}
+                        Extra days running: {formatDayCount(uptimeDays)}
                       </p>
                       <p className="mt-1 text-sm text-red-600">
-                        Uptime cash charge: {formatPrice(uptimePrice)}
+                        Extra payment due: {formatPrice(uptimePrice)}
                       </p>
                     </>
                   ) : (booking.timeRemainingHours ?? 0) > 0 ? (
@@ -195,8 +190,8 @@ function TrackContent() {
                   />
                 )}
                 <DetailRow
-                  label="Duration"
-                  value={formatDuration(totalHours)}
+                  label="Booked Days"
+                  value={formatDayCount(booking.bookedDays)}
                 />
                 <DetailRow
                   label="Vehicle"
@@ -208,14 +203,14 @@ function TrackContent() {
                   label="Booked Price"
                   value={formatPrice(booking.price)}
                 />
-                {uptimeHours > 0 && (
+                {uptimeDays > 0 && (
                   <DetailRow
                     label={
                       booking.lateChargeMode === "pending"
-                        ? "Uptime (estimated)"
-                        : "Uptime"
+                        ? "Extra Days (estimated)"
+                        : "Extra Days"
                     }
-                    value={`${formatDuration(uptimeHours)} (+${formatPrice(uptimePrice)})`}
+                    value={`${formatDayCount(uptimeDays)} (+${formatPrice(uptimePrice)})`}
                   />
                 )}
                 <div className="flex justify-between pt-3">
@@ -228,7 +223,7 @@ function TrackContent() {
                 </div>
                 {booking.lateChargeMode === "pending" && (
                   <div className="text-xs text-amber-600">
-                    Extra uptime is charged manually by admin at pickup.
+                    Extra day charges are collected manually by admin at pickup.
                   </div>
                 )}
               </CardContent>

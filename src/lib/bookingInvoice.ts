@@ -1,7 +1,7 @@
 import { Booking } from "@/types";
 import {
   formatDateTime,
-  formatDuration,
+  formatDayCount,
   formatPrice,
   getPaymentStatusLabel,
   getStatusLabel,
@@ -43,37 +43,29 @@ export function printBookingInvoice(booking: Booking): boolean {
     return false;
   }
 
-  const scheduledHours =
-    (new Date(booking.bookedEndTime).getTime() -
-      new Date(booking.bookedStartTime).getTime()) /
-    (1000 * 60 * 60);
   const statusLabel = booking.statusLabel ?? getStatusLabel(booking.status);
   const paymentStatusLabel = getPaymentStatusLabel(booking.paymentStatus);
   const invoiceDate = formatDateTime(new Date());
   const currentTotalPrice = booking.currentTotalPrice ?? booking.totalPrice;
-  const overtimeHours =
+  const pendingExtraDays = booking.uptimeDays ?? 0;
+  const pendingExtraPrice = booking.uptimePrice ?? 0;
+  const finalizedExtraDays = booking.overtimeDays ?? 0;
+  const finalizedExtraPrice = booking.overtimePrice ?? 0;
+  const extraDays =
+    booking.lateChargeMode === "pending" ? pendingExtraDays : finalizedExtraDays;
+  const extraPrice =
+    booking.lateChargeMode === "pending" ? pendingExtraPrice : finalizedExtraPrice;
+  const extraLabel =
     booking.lateChargeMode === "pending"
-      ? booking.uptimeHours ?? 0
-      : booking.overtimeHours ?? 0;
-  const overtimePrice =
-    booking.lateChargeMode === "pending"
-      ? booking.uptimePrice ?? 0
-      : booking.overtimePrice ?? 0;
-  const overtimeLabel =
-    booking.lateChargeMode === "pending"
-      ? "Estimated overtime"
-      : "Overtime";
+      ? "Estimated extra days"
+      : "Extra days";
 
   const notes: string[] = [];
 
-  if (booking.discountPercent > 0) {
-    notes.push(`${booking.discountPercent}% discount applied.`);
-  }
-
-  if (booking.lateChargeMode === "pending" && overtimePrice > 0) {
-    notes.push("Overtime is estimated and should be collected at pickup.");
-  } else if (booking.overtimePrice > 0) {
-    notes.push("Overtime was added after actual pickup.");
+  if (booking.lateChargeMode === "pending" && extraPrice > 0) {
+    notes.push("Extra payment is estimated until the admin completes pickup.");
+  } else if (extraPrice > 0) {
+    notes.push("Extra payment was added after late pickup.");
   }
 
   if (booking.paymentStatus !== "paid") {
@@ -82,7 +74,7 @@ export function printBookingInvoice(booking: Booking): boolean {
 
   const noteMarkup = notes.length
     ? notes.map((note) => `<div>${escapeHtml(note)}</div>`).join("")
-    : `<div>No additional notes.</div>`;
+    : "<div>No additional notes.</div>";
 
   const html = `<!doctype html>
 <html lang="en">
@@ -158,11 +150,11 @@ export function printBookingInvoice(booking: Booking): boolean {
       }
 
       .row span:first-child {
-        max-width: 48%;
+        max-width: 46%;
       }
 
       .row span:last-child {
-        max-width: 52%;
+        max-width: 54%;
         text-align: right;
         word-break: break-word;
       }
@@ -256,14 +248,14 @@ export function printBookingInvoice(booking: Booking): boolean {
         booking.actualExitTime ? formatDateTime(booking.actualExitTime) : null,
       )}
       <div class="row">
-        <span>Duration</span>
-        <span>${escapeHtml(formatDuration(scheduledHours))}</span>
+        <span>Booked Days</span>
+        <span>${escapeHtml(formatDayCount(booking.bookedDays))}</span>
       </div>
       ${
-        overtimeHours > 0
+        extraDays > 0
           ? `<div class="row">
-              <span>${escapeHtml(overtimeLabel)}</span>
-              <span>${escapeHtml(formatDuration(overtimeHours))}</span>
+              <span>${escapeHtml(extraLabel)}</span>
+              <span>${escapeHtml(formatDayCount(extraDays))}</span>
             </div>`
           : ""
       }
@@ -314,10 +306,10 @@ export function printBookingInvoice(booking: Booking): boolean {
         <span>${escapeHtml(formatPrice(booking.price))}</span>
       </div>
       ${
-        overtimePrice > 0
+        extraPrice > 0
           ? `<div class="row">
-              <span>${escapeHtml(overtimeLabel)}</span>
-              <span>${escapeHtml(formatPrice(overtimePrice))}</span>
+              <span>${escapeHtml(extraLabel)}</span>
+              <span>${escapeHtml(formatPrice(extraPrice))}</span>
             </div>`
           : ""
       }

@@ -14,7 +14,7 @@ const faqs = [
   },
   {
     q: "How is the price calculated?",
-    a: "Our pricing is based on an hourly rate. We offer multi-day discounts: 5+ days (10% off), 10+ days (20% off), and 15+ days (30% off). No hidden fees.",
+    a: "Our pricing is based on chargeable days. Days 1 to 10 use the admin-set prices, day 11 to 30 adds £3 per extra day, and day 31 onward adds £2 per extra day.",
   },
   {
     q: "Can I track my booking?",
@@ -22,7 +22,7 @@ const faqs = [
   },
   {
     q: "What happens if I pick up my car late?",
-    a: "If you exceed your booked time, overtime charges apply at the standard hourly rate (no discounts). The total will be recalculated when you collect your car.",
+    a: "If you keep the car beyond the booked period and cross into extra chargeable days, the total is recalculated using the same day-based pricing and collected when you pick up the car.",
   },
   {
     q: "Is the car park secure?",

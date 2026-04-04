@@ -2,13 +2,13 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { PriceCalculation } from "@/types";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { formatPrice } from "@/lib/utils";
+import { formatDayCount, formatPrice } from "@/lib/utils";
 import { DateTimePicker } from "@/components/ui/DatePicker";
 import PageHero from "@/components/shared/PageHero";
 import {
@@ -42,7 +42,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Tag,
-  BadgePercent,
   Ban,
 } from "lucide-react";
 
@@ -162,7 +161,7 @@ const bookingSchema = z
       return diff >= 60 * 60 * 1000; // minimum 1 hour
     },
     {
-      message: "Booking must be at least 1 hour",
+      message: "Booking must be at least 1 hour. Partial days are charged as full days.",
       path: ["bookedEndTime"],
     },
   );
@@ -171,7 +170,6 @@ type BookingFormValues = z.infer<typeof bookingSchema>;
 
 // ─── main form component ─────────────────────────────────────────
 function BookingFormContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [pricePreview, setPricePreview] = useState<PriceCalculation | null>(
     null,
@@ -391,26 +389,16 @@ function BookingFormContent() {
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-sm text-primary">
-                          {pricePreview.totalDays?.toFixed(1)} days (
-                          {pricePreview.totalHours?.toFixed(0)} hours) @{" "}
-                          {formatPrice(pricePreview.pricePerHour)}/hr
+                          {formatDayCount(pricePreview.totalDays)} charged for
+                          your selected dates
                         </p>
-                        {pricePreview.discountPercent > 0 && (
-                          <p className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1">
-                            <BadgePercent className="w-3.5 h-3.5" />
-                            {pricePreview.discountPercent}% discount applied!
-                          </p>
-                          // <p className="text-xs text-green-600 font-medium mt-1">
-                          //   🎉 {pricePreview.discountPercent}% discount applied!
-                          // </p>
-                        )}
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Day 11 to 30 adds {formatPrice(pricePreview.day11To30Increment)} per day.
+                          Day 31 onward adds {formatPrice(pricePreview.day31PlusIncrement)} per day.
+                        </p>
                       </div>
                       <div className="text-right">
-                        {pricePreview.discountPercent > 0 && (
-                          <p className="text-sm line-through text-primary-light">
-                            {formatPrice(pricePreview.basePrice)}
-                          </p>
-                        )}
+
                         <p className="text-2xl font-bold text-primary">
                           {priceLoading
                             ? "..."
@@ -806,3 +794,4 @@ export default function BookPage() {
     </Suspense>
   );
 }
+

@@ -1,6 +1,6 @@
-export type BookingStatus = 'upcoming' | 'active' | 'completed' | 'cancelled';
-export type LateChargeMode = 'none' | 'pending' | 'finalized';
-export type PaymentStatus = 'awaiting_payment' | 'paid';
+export type BookingStatus = "upcoming" | "active" | "completed" | "cancelled";
+export type LateChargeMode = "none" | "pending" | "finalized";
+export type PaymentStatus = "awaiting_payment" | "paid";
 
 export interface Booking {
   _id: string;
@@ -29,24 +29,28 @@ export interface Booking {
   isOvertimeRunning?: boolean;
   timeUntilStartHours?: number;
   timeRemainingHours?: number;
+  bookedDays: number;
+  overtimeDays: number;
+  uptimeDays?: number;
   uptimeHours?: number;
   uptimePrice?: number;
   currentTotalPrice?: number;
   lateChargeMode?: LateChargeMode;
+  firstTenDayPricesSnapshot?: number[];
+  day11To30Increment?: number;
+  day31PlusIncrement?: number;
   price: number;
-  overtimeHours: number;
   overtimePrice: number;
   totalPrice: number;
-  pricePerHour: number;
-  discountPercent: number;
+  pricePerHour?: number;
+  discountPercent?: number;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface PricingConfig {
   _id: string;
-  pricePerHour: number;
-  discountRules: { minDays: number; percentage: number }[];
+  firstTenDayPrices: number[];
   createdAt: string;
   updatedAt: string;
 }
@@ -54,11 +58,14 @@ export interface PricingConfig {
 export interface PriceCalculation {
   totalHours: number;
   totalDays: number;
-  pricePerHour: number;
+  firstTenDayPrices: number[];
+  day11To30Increment: number;
+  day31PlusIncrement: number;
   basePrice: number;
-  discountPercent: number;
-  discountAmount: number;
   finalPrice: number;
+  pricePerHour?: number;
+  discountPercent?: number;
+  discountAmount?: number;
 }
 
 export interface DashboardStats {

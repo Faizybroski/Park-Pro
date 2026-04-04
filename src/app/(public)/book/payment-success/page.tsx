@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Booking } from "@/types";
 import { api } from "@/lib/api";
-import { formatDateTime, formatPrice, formatDuration } from "@/lib/utils";
+import { formatDateTime, formatDayCount, formatPrice } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -80,11 +80,6 @@ function PaymentSuccessContent() {
     );
   }
 
-  const totalHours =
-    (new Date(booking.bookedEndTime).getTime() -
-      new Date(booking.bookedStartTime).getTime()) /
-    (1000 * 60 * 60);
-
   return (
     <div className="min-h-screen py-12 bg-muted pt-24">
       <div className="max-w-2xl mx-auto px-4 space-y-6">
@@ -126,7 +121,10 @@ function PaymentSuccessContent() {
               label="Pick-up"
               value={formatDateTime(booking.bookedEndTime)}
             />
-            <DetailRow label="Duration" value={formatDuration(totalHours)} />
+            <DetailRow
+              label="Booked Days"
+              value={formatDayCount(booking.bookedDays)}
+            />
             <DetailRow
               label="Vehicle"
               value={`${booking.carMake} ${booking.carModel} (${booking.carColor})`}
@@ -141,13 +139,11 @@ function PaymentSuccessContent() {
                 <span className="text-2xl font-bold text-primary">
                   {formatPrice(booking.totalPrice)}
                 </span>
-                {booking.discountPercent > 0 && (
-                  <div className="mt-1">
-                    <Badge variant="secondary">
-                      {booking.discountPercent}% Discount
-                    </Badge>
-                  </div>
-                )}
+                <div className="mt-1">
+                  <Badge variant="secondary">
+                    {formatDayCount(booking.bookedDays)}
+                  </Badge>
+                </div>
               </div>
             </div>
           </CardContent>

@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { Booking } from "@/types";
 import {
   formatDateTime,
+  formatDayCount,
   formatDuration,
   formatPrice,
   getPaymentStatusColor,
@@ -324,14 +325,10 @@ export default function BookingsPage() {
           </div>
         ) : (
           bookings.map((booking) => {
-            const scheduledHours =
-              (new Date(booking.bookedEndTime).getTime() -
-                new Date(booking.bookedStartTime).getTime()) /
-              (1000 * 60 * 60);
             const statusLabel = booking.statusLabel ?? getStatusLabel(booking.status);
             const currentTotalPrice =
               booking.currentTotalPrice ?? booking.totalPrice;
-            const uptimeHours = booking.uptimeHours ?? 0;
+            const uptimeDays = booking.uptimeDays ?? 0;
             const uptimePrice = booking.uptimePrice ?? 0;
             const paymentStatusLabel = getPaymentStatusLabel(
               booking.paymentStatus,
@@ -384,10 +381,12 @@ export default function BookingsPage() {
                     <br />
                     <span>{formatDateTime(booking.bookedEndTime)}</span>
                   </p>
-                  <p className="font-medium">{formatDuration(scheduledHours)}</p>
-                  {booking.isOvertimeRunning && uptimeHours > 0 && (
+                  <p className="font-medium">
+                    {formatDayCount(booking.bookedDays)}
+                  </p>
+                  {booking.isOvertimeRunning && uptimeDays > 0 && (
                     <p className="text-xs font-medium text-amber-600">
-                      Uptime {formatDuration(uptimeHours)}
+                      Extra {formatDayCount(uptimeDays)}
                     </p>
                   )}
                 </div>
@@ -398,7 +397,7 @@ export default function BookingsPage() {
                   </p>
                   {booking.lateChargeMode === "pending" && uptimePrice > 0 && (
                     <p className="text-xs text-amber-600">
-                      Uptime charges +{formatPrice(uptimePrice)}
+                      Extra payment +{formatPrice(uptimePrice)}
                     </p>
                   )}
                   {booking.lateChargeMode === "finalized" && uptimePrice > 0 && (
@@ -574,12 +573,8 @@ export default function BookingsPage() {
                 />
               )}
               <Row
-                label="Duration"
-                value={formatDuration(
-                  (new Date(selectedBooking.bookedEndTime).getTime() -
-                    new Date(selectedBooking.bookedStartTime).getTime()) /
-                    (1000 * 60 * 60),
-                )}
+                label="Booked Days"
+                value={formatDayCount(selectedBooking.bookedDays)}
               />
               <Row label="Payment Status" value={selectedPaymentStatusLabel} />
               <Row label="Booked Price" value={formatPrice(selectedBooking.price)} />
@@ -600,15 +595,15 @@ export default function BookingsPage() {
                     )}
                   />
                 )}
-              {(selectedBooking.uptimeHours ?? 0) > 0 && (
+              {(selectedBooking.uptimeDays ?? 0) > 0 && (
                 <Row
                   label={
                     selectedBooking.lateChargeMode === "pending"
-                      ? "Pending Uptime"
-                      : "Uptime"
+                      ? "Pending Extra Days"
+                      : "Extra Days"
                   }
-                  value={`${formatDuration(
-                    selectedBooking.uptimeHours ?? 0,
+                  value={`${formatDayCount(
+                    selectedBooking.uptimeDays ?? 0,
                   )} (+${formatPrice(selectedBooking.uptimePrice ?? 0)})`}
                 />
               )}
@@ -635,7 +630,7 @@ export default function BookingsPage() {
                 </div>
                 {selectedBooking.lateChargeMode === "pending" && (
                   <p className="mt-2 text-xs text-amber-600">
-                    Extra uptime should be collected manually in cash at pickup.
+                    Extra day charges should be collected manually in cash at pickup.
                   </p>
                 )}
                 {!selectedBookingIsPaid && (

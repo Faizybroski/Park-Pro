@@ -28,6 +28,20 @@ export function formatDateTime(date: string | Date): string {
   });
 }
 
+export function calculateChargeableDays(
+  start: string | Date,
+  end: string | Date,
+): number {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  const diffMs = endDate.getTime() - startDate.getTime();
+  if (!Number.isFinite(diffMs) || diffMs <= 0) {
+    return 0;
+  }
+
+  return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+}
+
 export function formatPrice(price: number): string {
   return currencyFormatter.format(price ?? 0);
 }
@@ -47,6 +61,36 @@ export function formatDuration(hours: number): string {
   if (minutes > 0 || parts.length === 0) parts.push(`${minutes}m`);
 
   return parts.join(" ");
+}
+
+export function formatDayCount(days: number): string {
+  const normalizedDays = Number.isFinite(days) ? days : 0;
+  return `${normalizedDays} day${normalizedDays !== 1 ? "s" : ""}`;
+}
+
+export function calculateDayBasedPrice(
+  totalDays: number,
+  firstTenDayPrices: number[],
+  day11To30Increment: number,
+  day31PlusIncrement: number,
+): number {
+  if (totalDays <= 0) {
+    return 0;
+  }
+
+  if (totalDays <= 10) {
+    return firstTenDayPrices[totalDays - 1] ?? 0;
+  }
+
+  const dayTenPrice = firstTenDayPrices[9] ?? 0;
+  const daysFrom11To30 = Math.min(totalDays, 30) - 10;
+  const daysFrom31Plus = Math.max(0, totalDays - 30);
+
+  return (
+    dayTenPrice +
+    daysFrom11To30 * day11To30Increment +
+    daysFrom31Plus * day31PlusIncrement
+  );
 }
 
 export function getStatusLabel(status: string): string {

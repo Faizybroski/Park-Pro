@@ -181,7 +181,7 @@ const faqs = [
   },
   {
     q: "How is the price calculated?",
-    a: "Pricing is based on an hourly rate with automatic multi-day discounts: 5+ days (10% off), 10+ days (20% off), and 15+ days (30% off). No hidden fees.",
+    a: "Pricing is based on chargeable days. The admin sets prices for days 1 to 10, then day 11 to 30 adds £3 per extra day, and day 31 onward adds £2 per extra day.",
   },
   {
     q: "Can I cancel or modify my booking?",
@@ -199,7 +199,7 @@ export default function HomePage() {
   const router = useRouter();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [pricePerHour, setPricePerHour] = useState(3);
+  const [startingDayPrice, setStartingDayPrice] = useState(12);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const handleQuickBook = (e: React.SyntheticEvent) => {
@@ -213,8 +213,8 @@ export default function HomePage() {
 
   useEffect(() => {
     api
-      .getPricePerHour()
-      .then((res) => setPricePerHour(res.data))
+      .getStartingDayPrice()
+      .then((res) => setStartingDayPrice(res.data))
       .catch(() => {});
   }, []);
 
@@ -250,7 +250,7 @@ export default function HomePage() {
 
               <p className="text-lg text-muted-foreground mb-8 max-w-lg leading-relaxed">
                 Book your guaranteed airport parking space in under 60 seconds.
-                No account needed. Competitive prices with multi-day discounts.
+                No account needed. Simple day-based pricing with no hidden fees.
               </p>
 
               {/* Mini trust badges */}
@@ -333,7 +333,7 @@ export default function HomePage() {
                   </form>
 
                   <p className="text-xs text-muted-foreground text-center mt-3">
-                    From £{pricePerHour}/hour • No hidden fees
+                    From £{startingDayPrice}/day • No hidden fees
                   </p>
                 </CardContent>
               </Card>
@@ -371,7 +371,7 @@ export default function HomePage() {
                 </form>
 
                 <p className="text-center text-xs text-white/60 mt-4">
-                  From £{pricePerHour}/hour · No hidden fees · Instant
+                  From £{startingDayPrice}/day · No hidden fees · Instant
                   confirmation
                 </p>
               </div>
@@ -833,7 +833,7 @@ export default function HomePage() {
                   "24/7 CCTV & security patrols",
                   "Instant booking confirmation",
                   "No account required",
-                  "Multi-day discounts available",
+                  "Simple day-based pricing",
                   "Real-time booking tracking",
                 ].map((item) => (
                   <li
@@ -944,7 +944,7 @@ export default function HomePage() {
             asChild
             className="bg-white text-primary hover:bg-primary hover:text-white font-bold px-10 py-4 rounded-xl text-lg border-0"
           >
-            <Link href="/book">Book Now — From £{pricePerHour}/hr</Link>
+            <Link href="/book">Book Now — From £{startingDayPrice}/day</Link>
           </Button>
         </div>
       </section>
