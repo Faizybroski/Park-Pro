@@ -81,9 +81,9 @@ export default function ContactPage() {
 
       setSubmitted(true);
       form.reset();
-    } catch (err: any) {
+    } catch (err: unknown) {
       form.setError("root", {
-        message: err.message || "Something went wrong",
+        message: err instanceof Error ? err.message : "Something went wrong",
       });
     } finally {
       setLoading(false);

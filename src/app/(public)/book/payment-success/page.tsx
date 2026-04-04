@@ -86,7 +86,7 @@ function PaymentSuccessContent() {
     (1000 * 60 * 60);
 
   return (
-    <div className="min-h-screen py-12 bg-muted">
+    <div className="min-h-screen py-12 bg-muted pt-24">
       <div className="max-w-2xl mx-auto px-4 space-y-6">
         {/* Success header */}
         <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom-4">
@@ -160,7 +160,7 @@ function PaymentSuccessContent() {
               Track Booking
             </Link>
           </Button>
-          <Button asChild variant="outline" className="flex-1">
+          <Button asChild variant="outline" className="flex-1 rounded-full">
             <Link href="/">Back to Home</Link>
           </Button>
         </div>

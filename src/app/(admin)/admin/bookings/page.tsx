@@ -7,11 +7,20 @@ import {
   formatDateTime,
   formatDuration,
   formatPrice,
+  getPaymentStatusColor,
+  getPaymentStatusLabel,
   getStatusColor,
   getStatusLabel,
 } from "@/lib/utils";
+import { printBookingInvoice } from "@/lib/bookingInvoice";
 import { Badge } from "@/components/ui/badge";
-import { Download, Loader2, ToggleLeft, ToggleRight } from "lucide-react";
+import {
+  Download,
+  Loader2,
+  Printer,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 
 const tabs = [
   { key: "", label: "All" },
@@ -163,6 +172,18 @@ export default function BookingsPage() {
     }
   };
 
+  const handlePrintInvoice = (booking: Booking) => {
+    const opened = printBookingInvoice(booking);
+    if (!opened) {
+      console.error("Unable to open invoice print window");
+    }
+  };
+
+  const selectedBookingIsPaid = selectedBooking?.paymentStatus === "paid";
+  const selectedPaymentStatusLabel = getPaymentStatusLabel(
+    selectedBooking?.paymentStatus,
+  );
+
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
@@ -312,6 +333,10 @@ export default function BookingsPage() {
               booking.currentTotalPrice ?? booking.totalPrice;
             const uptimeHours = booking.uptimeHours ?? 0;
             const uptimePrice = booking.uptimePrice ?? 0;
+            const paymentStatusLabel = getPaymentStatusLabel(
+              booking.paymentStatus,
+            );
+            const canManageLifecycle = booking.paymentStatus === "paid";
 
             return (
               <div
@@ -389,8 +414,13 @@ export default function BookingsPage() {
                   >
                     {statusLabel}
                   </Badge>
+                  <Badge
+                    className={`inline-flex rounded-full px-2.5 py-1 text-[11px] uppercase ${getPaymentStatusColor(booking.paymentStatus)}`}
+                  >
+                    {paymentStatusLabel}
+                  </Badge>
                   {booking.status === "upcoming" &&
-                    (booking.canActivate ? (
+                    (booking.canActivate && canManageLifecycle ? (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -401,6 +431,10 @@ export default function BookingsPage() {
                       >
                         Activate
                       </button>
+                    ) : !canManageLifecycle ? (
+                      <p className="max-w-32 text-center text-[11px] text-amber-600">
+                        Awaiting payment confirmation
+                      </p>
                     ) : (
                       <p className="max-w-32 text-center text-[11px] text-amber-600">
                         Activate from {formatDateTime(booking.bookedStartTime)}
@@ -412,12 +446,26 @@ export default function BookingsPage() {
                         e.stopPropagation();
                         void handleStatusChange(booking._id, "completed");
                       }}
-                      disabled={updating}
+                      disabled={updating || !canManageLifecycle}
                       className="min-w-35 max-w-fit rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-60"
                     >
                       Complete
                     </button>
                   )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePrintInvoice(booking);
+                    }}
+                    className="inline-flex min-w-35 items-center justify-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all hover:shadow-sm"
+                    style={{
+                      borderColor: "var(--border)",
+                      color: "var(--foreground)",
+                    }}
+                  >
+                    <Printer className="h-3.5 w-3.5" />
+                    Invoice
+                  </button>
                 </div>
               </div>
             );
@@ -487,12 +535,19 @@ export default function BookingsPage() {
               >
                 {selectedBooking.trackingNumber}
               </p>
-              <span
-                className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase ${getStatusColor(selectedBooking.status)}`}
-              >
-                {selectedBooking.statusLabel ??
-                  getStatusLabel(selectedBooking.status)}
-              </span>
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                <span
+                  className={`inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase ${getStatusColor(selectedBooking.status)}`}
+                >
+                  {selectedBooking.statusLabel ??
+                    getStatusLabel(selectedBooking.status)}
+                </span>
+                <span
+                  className={`inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase ${getPaymentStatusColor(selectedBooking.paymentStatus)}`}
+                >
+                  {selectedPaymentStatusLabel}
+                </span>
+              </div>
             </div>
 
             <div className="space-y-2 text-sm">
@@ -526,6 +581,7 @@ export default function BookingsPage() {
                     (1000 * 60 * 60),
                 )}
               />
+              <Row label="Payment Status" value={selectedPaymentStatusLabel} />
               <Row label="Booked Price" value={formatPrice(selectedBooking.price)} />
               {selectedBooking.status === "upcoming" &&
                 !selectedBooking.canActivate && (
@@ -582,10 +638,27 @@ export default function BookingsPage() {
                     Extra uptime should be collected manually in cash at pickup.
                   </p>
                 )}
+                {!selectedBookingIsPaid && (
+                  <p className="mt-2 text-xs text-amber-600">
+                    Booking actions stay locked until online payment is confirmed.
+                  </p>
+                )}
               </div>
             </div>
 
             <div className="mt-4 space-y-3">
+              <button
+                type="button"
+                onClick={() => handlePrintInvoice(selectedBooking)}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border py-2 text-sm font-medium transition-all hover:shadow-sm"
+                style={{
+                  borderColor: "var(--border)",
+                  color: "var(--foreground)",
+                }}
+              >
+                <Printer className="h-4 w-4" />
+                Print Invoice
+              </button>
               {selectedBooking.status === "upcoming" && (
                 <div className="flex gap-2">
                   <button
@@ -593,12 +666,18 @@ export default function BookingsPage() {
                     onClick={() =>
                       void handleStatusChange(selectedBooking._id, "active")
                     }
-                    disabled={updating || !selectedBooking.canActivate}
+                    disabled={
+                      updating ||
+                      !selectedBooking.canActivate ||
+                      !selectedBookingIsPaid
+                    }
                     className="flex-1 rounded-xl bg-green-500 py-2 text-sm font-medium text-white hover:bg-green-600 disabled:opacity-60"
                   >
-                    {selectedBooking.canActivate
-                      ? "Activate"
-                      : "Waiting for start time"}
+                    {selectedBookingIsPaid
+                      ? selectedBooking.canActivate
+                        ? "Activate"
+                        : "Waiting for start time"
+                      : "Awaiting payment"}
                   </button>
                   <button
                     type="button"
@@ -644,7 +723,9 @@ export default function BookingsPage() {
                         completionExitTime,
                       )
                     }
-                    disabled={updating || !completionExitTime}
+                    disabled={
+                      updating || !completionExitTime || !selectedBookingIsPaid
+                    }
                     className="w-full rounded-xl bg-blue-500 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-60"
                   >
                     {updating ? "Saving…" : "Mark Completed"}

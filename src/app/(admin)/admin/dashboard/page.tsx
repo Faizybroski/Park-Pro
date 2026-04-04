@@ -169,7 +169,7 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            {/* Overtime Charges */}
+            {/* Extra Pick-up Payments */}
             <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: "var(--muted)" }}>
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${overtimeBookingsExist ? "bg-amber-100" : "bg-gray-100"}`}>
@@ -177,10 +177,10 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                    Overtime Charges
+                    Extra Pick-up Payments
                   </p>
                   <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-                    Late pick-up surcharges
+                    Late pick-up surcharges added after exit
                   </p>
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function DashboardPage() {
           >
             <div className="p-3 rounded-xl" style={{ background: "var(--muted)" }}>
               <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-                Today's Bookings
+                Today&apos;s Bookings
               </p>
               <p className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
                 {stats.todayBookings}

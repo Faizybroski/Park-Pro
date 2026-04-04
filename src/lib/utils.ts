@@ -1,6 +1,11 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+const currencyFormatter = new Intl.NumberFormat("en-GB", {
+  style: "currency",
+  currency: "GBP",
+});
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -24,7 +29,7 @@ export function formatDateTime(date: string | Date): string {
 }
 
 export function formatPrice(price: number): string {
-  return `£${price?.toFixed(2)}`;
+  return currencyFormatter.format(price ?? 0);
 }
 
 export function formatDuration(hours: number): string {
@@ -64,6 +69,24 @@ export function getStatusColor(status: string): string {
   }
 }
 
-// export function cn(...classes: (string | boolean | undefined | null)[]): string {
-//   return classes.filter(Boolean).join(' ');
-// }
+export function getPaymentStatusLabel(paymentStatus?: string): string {
+  switch (paymentStatus) {
+    case "paid":
+      return "Paid";
+    case "awaiting_payment":
+      return "Awaiting payment";
+    default:
+      return "Unknown";
+  }
+}
+
+export function getPaymentStatusColor(paymentStatus?: string): string {
+  switch (paymentStatus) {
+    case "paid":
+      return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400";
+    case "awaiting_payment":
+      return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+}
