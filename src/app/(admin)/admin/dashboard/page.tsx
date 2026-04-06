@@ -13,7 +13,6 @@ import {
   ToggleRight,
   ToggleLeft,
   CreditCard,
-  Clock,
   TrendingUp,
 } from "lucide-react";
 
@@ -80,8 +79,6 @@ export default function DashboardPage() {
       bg: "bg-purple-100",
     },
   ];
-
-  const overtimeBookingsExist = stats.overtimeRevenue > 0;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -168,27 +165,6 @@ export default function DashboardPage() {
                 {formatPrice(stats.stripeRevenue)}
               </p>
             </div>
-
-            {/* Extra Pick-up Payments */}
-            <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: "var(--muted)" }}>
-              <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${overtimeBookingsExist ? "bg-amber-100" : "bg-gray-100"}`}>
-                  <Clock className={`w-4 h-4 ${overtimeBookingsExist ? "text-amber-600" : "text-gray-400"}`} />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                    Extra Pick-up Payments
-                  </p>
-                  <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-                    Late pick-up surcharges added after exit
-                  </p>
-                </div>
-              </div>
-              <p className={`text-lg font-bold ${overtimeBookingsExist ? "text-amber-600" : ""}`} style={overtimeBookingsExist ? {} : { color: "var(--muted-foreground)" }}>
-                {formatPrice(stats.overtimeRevenue)}
-              </p>
-            </div>
-
             {/* Divider + Total */}
             <div
               className="border-t pt-3 flex items-center justify-between"

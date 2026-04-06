@@ -100,13 +100,13 @@ const services = [
     color: "text-primary",
     bg: "bg-orange-100",
   },
-  {
-    icon: Plane,
-    title: "Park & Ride",
-    desc: "Drive to our secure facility, jump on our complimentary shuttle, and arrive at the terminal in minutes.",
-    color: "text-blue-600",
-    bg: "bg-blue-50",
-  },
+  // {
+  //   icon: Plane,
+  //   title: "Park & Ride",
+  //   desc: "Drive to our secure facility, jump on our complimentary shuttle, and arrive at the terminal in minutes.",
+  //   color: "text-blue-600",
+  //   bg: "bg-blue-50",
+  // },
   {
     icon: Building2,
     title: "On-Airport Parking",
@@ -181,7 +181,7 @@ const faqs = [
   },
   {
     q: "How is the price calculated?",
-    a: "Pricing is based on chargeable days. The admin sets prices for days 1 to 10, then day 11 to 30 adds £3 per extra day, and day 31 onward adds £2 per extra day.",
+    a: "Pricing is based on chargeable days and follows our current admin-managed pricing schedule. You will always see the live total before payment.",
   },
   {
     q: "Can I cancel or modify my booking?",
@@ -581,7 +581,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {services.map((s, i) => {
               const Icon = s.icon;
               return (

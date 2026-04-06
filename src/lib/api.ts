@@ -1,9 +1,11 @@
 import {
   ApiResponse,
   Booking,
+  BookingSelectionPayload,
   DashboardStats,
   PaginatedResponse,
   PriceCalculation,
+  PricingBreakdown,
   PricingConfig,
 } from "@/types";
 
@@ -35,8 +37,19 @@ class ApiClient {
       throw new Error(error.message || `HTTP ${res.status}`);
     }
 
-    if (res.headers.get("content-type")?.includes("text/csv")) {
+    const contentType = res.headers.get("content-type") || "";
+
+    if (contentType.includes("text/csv")) {
       return (await res.text()) as unknown as T;
+    }
+
+    if (
+      contentType.includes(
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ) ||
+      contentType.includes("application/octet-stream")
+    ) {
+      return (await res.blob()) as unknown as T;
     }
 
     return res.json();
@@ -136,9 +149,26 @@ class ApiClient {
     });
   }
 
-  async exportBookings(status?: string): Promise<string> {
-    const searchParams = status ? `?status=${status}` : "";
-    return this.request(`/admin/bookings/export${searchParams}`);
+  async exportBookingsExcel(data: BookingSelectionPayload): Promise<Blob> {
+    return this.request("/admin/bookings/export", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteBooking(id: string): Promise<ApiResponse<{ id: string }>> {
+    return this.request(`/admin/bookings/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async bulkDeleteBookings(data: BookingSelectionPayload): Promise<
+    ApiResponse<{ deletedCount: number; deletedIds: string[] }>
+  > {
+    return this.request("/admin/bookings/bulk-delete", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   }
 
   async getBookingToggle(): Promise<ApiResponse<{ bookingEnabled: boolean }>> {
@@ -160,11 +190,17 @@ class ApiClient {
 
   async updatePricing(data: {
     firstTenDayPrices: number[];
+    day11To30Increment: number;
+    day31PlusIncrement: number;
   }): Promise<ApiResponse<PricingConfig>> {
     return this.request("/admin/pricing", {
       method: "POST",
       body: JSON.stringify(data),
     });
+  }
+
+  async getPricingBreakdown(days: number): Promise<ApiResponse<PricingBreakdown>> {
+    return this.request(`/bookings/pricing?days=${days}`);
   }
 
   async contact(data: { name: string; email: string; message: string }) {

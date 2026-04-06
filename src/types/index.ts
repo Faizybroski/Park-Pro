@@ -2,6 +2,13 @@ export type BookingStatus = "upcoming" | "active" | "completed" | "cancelled";
 export type LateChargeMode = "none" | "pending" | "finalized";
 export type PaymentStatus = "awaiting_payment" | "paid";
 
+export interface PricingRule {
+  startDay: number;
+  endDay?: number | null;
+  basePrice: number;
+  dailyIncrement: number;
+}
+
 export interface Booking {
   _id: string;
   userName: string;
@@ -36,6 +43,7 @@ export interface Booking {
   uptimePrice?: number;
   currentTotalPrice?: number;
   lateChargeMode?: LateChargeMode;
+  pricingRulesSnapshot?: PricingRule[];
   firstTenDayPricesSnapshot?: number[];
   day11To30Increment?: number;
   day31PlusIncrement?: number;
@@ -50,17 +58,35 @@ export interface Booking {
 
 export interface PricingConfig {
   _id: string;
-  firstTenDayPrices: number[];
+  pricingRules: PricingRule[];
+  firstTenDayPrices?: number[];
+  day11To30Increment?: number;
+  day31PlusIncrement?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PricingBreakdownEntry {
+  day: number;
+  price: number;
+  tier: 1 | 2 | 3;
+}
+
+export interface PricingBreakdown {
+  requestedDays: number;
+  totalPrice: number;
+  breakdown: PricingBreakdownEntry[];
+  tieredConfig: {
+    firstTenDayPrices: number[];
+    day11To30Increment: number;
+    day31PlusIncrement: number;
+  };
 }
 
 export interface PriceCalculation {
   totalHours: number;
   totalDays: number;
-  firstTenDayPrices: number[];
-  day11To30Increment: number;
-  day31PlusIncrement: number;
+  pricingRules: PricingRule[];
   basePrice: number;
   finalPrice: number;
   pricePerHour?: number;
@@ -94,4 +120,13 @@ export interface PaginatedResponse<T> {
   total: number;
   page: number;
   totalPages: number;
+  limit: number;
+}
+
+export interface BookingSelectionPayload {
+  selectionMode: "selected" | "allMatching";
+  ids?: string[];
+  excludeIds?: string[];
+  search?: string;
+  status?: BookingStatus;
 }

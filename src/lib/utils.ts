@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { PricingRule } from "@/types";
 
 const currencyFormatter = new Intl.NumberFormat("en-GB", {
   style: "currency",
@@ -68,29 +69,25 @@ export function formatDayCount(days: number): string {
   return `${normalizedDays} day${normalizedDays !== 1 ? "s" : ""}`;
 }
 
-export function calculateDayBasedPrice(
+export function calculatePriceFromRules(
   totalDays: number,
-  firstTenDayPrices: number[],
-  day11To30Increment: number,
-  day31PlusIncrement: number,
+  pricingRules: PricingRule[],
 ): number {
   if (totalDays <= 0) {
     return 0;
   }
 
-  if (totalDays <= 10) {
-    return firstTenDayPrices[totalDays - 1] ?? 0;
+  const rule = pricingRules.find(
+    (currentRule) =>
+      totalDays >= currentRule.startDay &&
+      (currentRule.endDay == null || totalDays <= currentRule.endDay),
+  );
+
+  if (!rule) {
+    return 0;
   }
 
-  const dayTenPrice = firstTenDayPrices[9] ?? 0;
-  const daysFrom11To30 = Math.min(totalDays, 30) - 10;
-  const daysFrom31Plus = Math.max(0, totalDays - 30);
-
-  return (
-    dayTenPrice +
-    daysFrom11To30 * day11To30Increment +
-    daysFrom31Plus * day31PlusIncrement
-  );
+  return rule.basePrice + (totalDays - rule.startDay) * rule.dailyIncrement;
 }
 
 export function getStatusLabel(status: string): string {

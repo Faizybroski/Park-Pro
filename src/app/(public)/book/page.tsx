@@ -393,8 +393,8 @@ function BookingFormContent() {
                           your selected dates
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Day 11 to 30 adds {formatPrice(pricePreview.day11To30Increment)} per day.
-                          Day 31 onward adds {formatPrice(pricePreview.day31PlusIncrement)} per day.
+                          Calculated automatically using the current day-based
+                          pricing schedule.
                         </p>
                       </div>
                       <div className="text-right">
