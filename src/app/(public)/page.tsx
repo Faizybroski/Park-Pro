@@ -810,7 +810,7 @@ export default function HomePage() {
             {/* Right Image Panel */}
             <div
               className="min-h-[400px] hidden lg:block lg:min-h-full bg-cover bg-center"
-              style={{ backgroundImage: "url('/premiumService.png')" }}
+              style={{ backgroundImage: "url('/PremiumService.png')" }}
             />
           </div>
         </div>
@@ -855,7 +855,7 @@ export default function HomePage() {
           </div> */}
 
       {/* Right: dark panel with icon graphic */}
-      {/* <div className="bg-[url('/Premium-Service.png')] bg-cover bg-center min-h-[400px] flex items-center justify-center relative overflow-hidden"> */}
+      {/* <div className="bg-[url('/PremiumService.png')] bg-cover bg-center min-h-[400px] flex items-center justify-center relative overflow-hidden"> */}
       {/*Grid pattern overlay
              <div className="absolute inset-0 opacity-10" />
             <div className="text-center text-white relative z-10 p-8">
