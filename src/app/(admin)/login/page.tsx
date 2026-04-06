@@ -229,7 +229,7 @@ export default function AdminLoginPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="admin@parkpro.com"
+                placeholder="example@gmail.com"
                 value={form.email}
                 onChange={handleChange}
                 required
