@@ -810,7 +810,7 @@ export default function HomePage() {
             {/* Right Image Panel */}
             <div
               className="min-h-[400px] hidden lg:block lg:min-h-full bg-cover bg-center"
-              style={{ backgroundImage: "url('/premium-service.png')" }}
+              style={{ backgroundImage: "url('/premiumService.png')" }}
             />
           </div>
         </div>
