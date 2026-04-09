@@ -666,7 +666,7 @@ function BookingFormContent() {
                   control={form.control}
                   name="departureTerminal"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="col-span-2">
                       <FormLabel>Departure Terminal</FormLabel>
                       <FormControl>
                         <div className="relative">
@@ -684,7 +684,7 @@ function BookingFormContent() {
                 />
 
                 {/* Departure Flight No */}
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="departureFlightNo"
                   render={({ field }) => (
@@ -703,7 +703,7 @@ function BookingFormContent() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
 
                 {/* Arrival Terminal */}
                 <FormField
