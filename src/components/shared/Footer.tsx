@@ -116,7 +116,14 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-6 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm opacity-60 text-center sm:text-left">
+        <div className="mt-12 pt-6 flex flex-col sm:flex-row items-center sm:justify-between text-sm opacity-60 text-xs border-t border-white/10 pt-4 gap-2 text-center sm:text-left">
+          <p>
+            Made with ❤️ <a href="https://thesocialnexus.co.uk" className="underline hover:opacity-100 transition">
+              TSN
+            </a>
+          </p>
+        </div>
+        <div className="pt-3 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm opacity-60 text-center sm:text-left">
           <p>
             © {new Date().getFullYear()} ParkPro Airport Parking. All rights
             reserved.

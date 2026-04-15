@@ -18,10 +18,9 @@ import {
   ClipboardCheck,
   PlaneTakeoff,
   Building2,
-  Search,
-  Users,
   MapPin,
   CreditCard,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,66 +30,13 @@ import {
   CardContent,
   CardDescription,
 } from "@/components/ui/card";
+import AirportPopover from "@/components/ui/AirportPicker";
 import { Label } from "@/components/ui/label";
 import { DateTimePicker } from "@/components/ui/DatePicker";
 import { api } from "@/lib/api";
 import type React from "react";
 
 // ─── Data ──────────────────────────────────────────────────────────────────────
-
-const steps = [
-  {
-    icon: CalendarDays,
-    num: "01",
-    title: "Enter Dates",
-    desc: "Pick your drop-off and pick-up dates and times",
-  },
-  {
-    icon: ClipboardCheck,
-    num: "02",
-    title: "Fill Details",
-    desc: "Enter your car and contact information",
-  },
-  {
-    icon: CheckCircle2,
-    num: "03",
-    title: "Get Confirmed",
-    desc: "Receive instant confirmation with your slot number",
-  },
-  {
-    icon: PlaneTakeoff,
-    num: "04",
-    title: "Park & Fly",
-    desc: "Drop off your car and head to the terminal",
-  },
-];
-
-const parkingOptions = [
-  {
-    title: "Short Stay",
-    desc: "Perfect for quick drop-offs",
-    gradient: "from-sky-500 to-blue-700",
-    icon: Clock,
-  },
-  {
-    title: "Long Stay",
-    desc: "Best value for longer trips",
-    gradient: "from-emerald-500 to-teal-700",
-    icon: CalendarDays,
-  },
-  {
-    title: "Meet & Greet",
-    desc: "Door-to-terminal valet service",
-    gradient: "from-violet-500 to-purple-700",
-    icon: Users,
-  },
-  {
-    title: "Business Class",
-    desc: "Premium parking experience",
-    gradient: "from-orange-400 to-primary",
-    icon: Building2,
-  },
-];
 
 const services = [
   {
@@ -100,46 +46,12 @@ const services = [
     color: "text-primary",
     bg: "bg-orange-100",
   },
-  // {
-  //   icon: Plane,
-  //   title: "Park & Ride",
-  //   desc: "Drive to our secure facility, jump on our complimentary shuttle, and arrive at the terminal in minutes.",
-  //   color: "text-blue-600",
-  //   bg: "bg-blue-50",
-  // },
   {
     icon: Building2,
     title: "On-Airport Parking",
     desc: "Stay close to the action with on-site parking — walk directly to departures without any wait.",
     color: "text-emerald-600",
     bg: "bg-emerald-50",
-  },
-];
-
-const deals = [
-  {
-    location: "Heathrow Airport",
-    duration: "7 days",
-    price: "£35.00",
-    popular: true,
-  },
-  {
-    location: "Gatwick Airport",
-    duration: "7 days",
-    price: "£28.00",
-    popular: false,
-  },
-  {
-    location: "Stansted Airport",
-    duration: "7 days",
-    price: "£24.00",
-    popular: false,
-  },
-  {
-    location: "Manchester Airport",
-    duration: "7 days",
-    price: "£21.00",
-    popular: false,
   },
 ];
 
@@ -302,6 +214,10 @@ export default function HomePage() {
 
                 <CardContent className="p-0">
                   <form onSubmit={handleQuickBook} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label>Select Airport</Label>
+                      <AirportPopover/>
+                    </div>
                     <div className="space-y-1.5">
                       <Label>Drop-off Date & Time</Label>
                       {/* <Input
