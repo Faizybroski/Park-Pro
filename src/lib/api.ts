@@ -184,6 +184,19 @@ class ApiClient {
     });
   }
 
+  async getTerminalMessages(): Promise<ApiResponse<{ messages: Record<string, string> }>> {
+    return this.request("/admin/terminal-messages");
+  }
+
+  async updateTerminalMessages(
+    messages: Record<string, string>,
+  ): Promise<ApiResponse<{ messages: Record<string, string> }>> {
+    return this.request("/admin/terminal-messages", {
+      method: "PATCH",
+      body: JSON.stringify({ messages }),
+    });
+  }
+
   async getPricing(): Promise<ApiResponse<PricingConfig>> {
     return this.request("/admin/pricing");
   }

@@ -83,7 +83,7 @@ export function DateTimePicker({ value, onChange }: Props) {
       <PopoverTrigger asChild className="active:bg-primary">
         <Button
           variant="outline"
-          className="w-full h-11 rounded-full justify-start text-left font-normal border border-primary-light/10 bg-input hover:bg-input active:bg-input data-[state=open]:bg-input"
+          className="w-full h-11 rounded-full justify-start text-left font-normal border border-primary-light/10 bg-input hover:bg-input active:bg-input data-[state=open]:bg-input focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/50 border border-primary-light/10"
         >
           <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
 

@@ -10,6 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { formatDayCount, formatPrice } from "@/lib/utils";
 import { DateTimePicker } from "@/components/ui/DatePicker";
+import {TerminalSelect} from "@/components/ui/TerminalPicker"
 import PageHero from "@/components/shared/PageHero";
 import {
   Form,
@@ -43,7 +44,10 @@ import {
   AlertCircle,
   Tag,
   Ban,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // ─── regex patterns ───────────────────────────────────────────────
 const FLIGHT_REGEX = /^[A-Z]{2,3}\d{1,4}[A-Z]?$/i; // BA123, EK2045, UA1234A
@@ -161,7 +165,8 @@ const bookingSchema = z
       return diff >= 60 * 60 * 1000; // minimum 1 hour
     },
     {
-      message: "Booking must be at least 1 hour. Partial days are charged as full days.",
+      message:
+        "Booking must be at least 1 hour. Partial days are charged as full days.",
       path: ["bookedEndTime"],
     },
   );
@@ -171,6 +176,7 @@ type BookingFormValues = z.infer<typeof bookingSchema>;
 // ─── main form component ─────────────────────────────────────────
 function BookingFormContent() {
   const searchParams = useSearchParams();
+
   const [pricePreview, setPricePreview] = useState<PriceCalculation | null>(
     null,
   );
@@ -293,52 +299,51 @@ function BookingFormContent() {
       />
       <div className="min-h-screen py-10 bg-muted/40">
         <div className="max-w-3xl mx-auto px-4">
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-6"
+              noValidate
+            >
+              {/* ── mutation error ────────────────────────────── */}
+              {mutation.isError && (
+                <div className="flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+                  <AlertCircle className="h-5 w-5 shrink-0" />
+                  <span>
+                    {mutation.error instanceof Error
+                      ? mutation.error.message
+                      : "Something went wrong. Please try again."}
+                  </span>
+                </div>
+              )}
 
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6"
-            noValidate
-          >
-            {/* ── mutation error ────────────────────────────── */}
-            {mutation.isError && (
-              <div className="flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
-                <AlertCircle className="h-5 w-5 shrink-0" />
-                <span>
-                  {mutation.error instanceof Error
-                    ? mutation.error.message
-                    : "Something went wrong. Please try again."}
-                </span>
-              </div>
-            )}
-
-            {/* ═══════════════════════════════════════════════ */}
-            {/*  DATES SECTION                                 */}
-            {/* ═══════════════════════════════════════════════ */}
-            <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
-              <CardHeader className="p-0">
-                <CardTitle className="flex items-center gap-2 text-lg font-bold mb-4 ">
-                  <CalendarClock className="h-6 w-6 text-primary" />
-                  Parking Dates
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid sm:grid-cols-2 gap-5 p-0">
-                {/* Drop-off */}
-                <FormField
-                  control={form.control}
-                  name="bookedStartTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Drop-off Date & Time
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <DateTimePicker
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                        {/* <div className="relative">
+              {/* ═══════════════════════════════════════════════ */}
+              {/*  DATES SECTION                                 */}
+              {/* ═══════════════════════════════════════════════ */}
+              <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
+                <CardHeader className="p-0">
+                  <CardTitle className="flex items-center gap-2 text-lg font-bold mb-4 ">
+                    <CalendarClock className="h-6 w-6 text-primary" />
+                    Parking Dates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid sm:grid-cols-2 gap-5 p-0">
+                  {/* Drop-off */}
+                  <FormField
+                    control={form.control}
+                    name="bookedStartTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Drop-off Date & Time
+                          <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <DateTimePicker
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                          {/* <div className="relative">
                           <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="datetime-local"
@@ -346,29 +351,29 @@ function BookingFormContent() {
                             {...field}
                           />
                         </div> */}
-                      </FormControl>
+                        </FormControl>
 
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                {/* Pick-up */}
-                <FormField
-                  control={form.control}
-                  name="bookedEndTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Pick-up Date & Time
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <DateTimePicker
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                        {/* <div className="relative">
+                  {/* Pick-up */}
+                  <FormField
+                    control={form.control}
+                    name="bookedEndTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Pick-up Date & Time
+                          <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <DateTimePicker
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                          {/* <div className="relative">
                           <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="datetime-local"
@@ -376,39 +381,38 @@ function BookingFormContent() {
                             {...field}
                           />
                         </div> */}
-                      </FormControl>
+                        </FormControl>
 
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                {/* Price preview */}
-                {pricePreview && (
-                  <div className="mt-4 p-4 rounded-xl border border-primary-light/10 bg-input sm:col-span-2">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-sm text-primary">
-                          {formatDayCount(pricePreview.totalDays)} charged for
-                          your selected dates
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Calculated automatically using the current day-based
-                          pricing schedule.
-                        </p>
-                      </div>
-                      <div className="text-right">
-
-                        <p className="text-2xl font-bold text-primary">
-                          {priceLoading
-                            ? "..."
-                            : formatPrice(pricePreview.finalPrice)}
-                        </p>
+                  {/* Price preview */}
+                  {pricePreview && (
+                    <div className="mt-4 p-4 rounded-xl border border-primary-light/10 bg-input sm:col-span-2">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="text-sm text-primary">
+                            {formatDayCount(pricePreview.totalDays)} charged for
+                            your selected dates
+                          </p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Calculated automatically using the current day-based
+                            pricing schedule.
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-primary">
+                            {priceLoading
+                              ? "..."
+                              : formatPrice(pricePreview.finalPrice)}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-                {/* {hasDates && (
+                  )}
+                  {/* {hasDates && (
                   <div className="sm:col-span-2 rounded-lg border bg-muted/60 p-4">
                     {priceLoading ? (
                       <div className="flex items-center justify-center gap-2 text-muted-foreground">
@@ -445,337 +449,335 @@ function BookingFormContent() {
                     ) : null}
                   </div>
                 )} */}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* ═══════════════════════════════════════════════ */}
-            {/*  PERSONAL DETAILS SECTION                      */}
-            {/* ═══════════════════════════════════════════════ */}
-            <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
-              <CardHeader className="p-0">
-                <CardTitle className="flex items-center gap-2 text-lg font-bold mb-4">
-                  <User className="h-6 w-6 text-primary" />
-                  Personal Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid sm:grid-cols-2 gap-5 p-0">
-                {/* Full Name */}
-                <FormField
-                  control={form.control}
-                  name="userName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Full Name<span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                          <Input
-                            placeholder="John Smith"
-                            className="pl-9"
+              {/* ═══════════════════════════════════════════════ */}
+              {/*  PERSONAL DETAILS SECTION                      */}
+              {/* ═══════════════════════════════════════════════ */}
+              <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
+                <CardHeader className="p-0">
+                  <CardTitle className="flex items-center gap-2 text-lg font-bold mb-4">
+                    <User className="h-6 w-6 text-primary" />
+                    Personal Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid sm:grid-cols-2 gap-5 p-0">
+                  {/* Full Name */}
+                  <FormField
+                    control={form.control}
+                    name="userName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Full Name<span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                            <Input
+                              placeholder="John Smith"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Email */}
+                  <FormField
+                    control={form.control}
+                    name="userEmail"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Email Address<span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                            <Input
+                              type="email"
+                              placeholder="john@example.com"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Phone */}
+                  <FormField
+                    control={form.control}
+                    name="userPhone"
+                    render={({ field }) => (
+                      <FormItem className="sm:col-span-2">
+                        <FormLabel>
+                          Phone Number<span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                            <Input
+                              type="tel"
+                              placeholder="+44 7700 900000"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* ═══════════════════════════════════════════════ */}
+              {/*  VEHICLE DETAILS SECTION                       */}
+              {/* ═══════════════════════════════════════════════ */}
+              <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
+                <CardHeader className="p-0">
+                  <CardTitle className="flex items-center gap-2 text-lg font-bold mb-4">
+                    <Car className="h-6 w-6 text-primary" />
+                    Vehicle Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid sm:grid-cols-2 gap-5 p-0">
+                  {/* Car Make */}
+                  <FormField
+                    control={form.control}
+                    name="carMake"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Car Make<span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                            <Input
+                              placeholder="e.g. Toyota"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Car Model */}
+                  <FormField
+                    control={form.control}
+                    name="carModel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Car Model<span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Car className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                            <Input
+                              placeholder="e.g. Corolla"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Registration Number */}
+                  <FormField
+                    control={form.control}
+                    name="carNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Registration Number
+                          <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                            <Input
+                              placeholder="e.g. AB12 CDE"
+                              className="pl-9 uppercase"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Car Colour */}
+                  <FormField
+                    control={form.control}
+                    name="carColor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Car Color<span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Palette className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                            <Input
+                              placeholder="e.g. Silver"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* ═══════════════════════════════════════════════ */}
+              {/*  FLIGHT DETAILS SECTION (OPTIONAL)             */}
+              {/* ═══════════════════════════════════════════════ */}
+              <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
+                <CardHeader className="p-0">
+                  <CardTitle className="flex items-center gap-2 text-lg font-bold mb-4">
+                    <PlaneTakeoff className="h-6 w-6 text-primary" />
+                    Flight Details
+                  </CardTitle>
+                  <CardDescription>
+                    Optional — helps us coordinate your parking
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="grid sm:grid-cols-2 gap-5 p-0">
+                  {/* Departure Terminal */}
+                  <FormField
+                    control={form.control}
+                    name="departureTerminal"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>Departure Terminal</FormLabel>
+                        <FormControl>
+                           <TerminalSelect
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                  />
+                          {/* <div className="relative">
+                          <PlaneTakeoff className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary pointer-events-none z-10" />
+                          <select
+                            className="w-full h-10 pl-9 pr-4 rounded-md border border-input bg-background text-sm appearance-none"
                             {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                          >
+                            <option value="">— Not selected —</option>
+                            <option value="T1">T1</option>
+                            <option value="T2">T2</option>
+                            <option value="T3">T3</option>
+                            <option value="T4">T4</option>
+                            <option value="T5">T5</option>
+                          </select>
+                        </div> */}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                {/* Email */}
-                <FormField
-                  control={form.control}
-                  name="userEmail"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Email Address<span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                          <Input
-                            type="email"
-                            placeholder="john@example.com"
-                            className="pl-9"
+                  {/* Arrival Terminal */}
+                  <FormField
+                    control={form.control}
+                    name="arrivalTerminal"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Arrival Terminal</FormLabel>
+                        <FormControl>
+                           <TerminalSelect
+          value={field.value}
+          onChange={field.onChange}
+        />
+                          {/* <div className="relative">
+                          <PlaneLanding className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary pointer-events-none z-10" />
+                          <select
+                            className="w-full h-10 pl-9 pr-4 rounded-md border border-input bg-background text-sm appearance-none"
                             {...field}
-                          />
-                        </div>
-                      </FormControl>
+                          >
+                            <option value="">— Not selected —</option>
+                            <option value="T1">T1</option>
+                            <option value="T2">T2</option>
+                            <option value="T3">T3</option>
+                            <option value="T4">T4</option>
+                            <option value="T5">T5</option>
+                          </select>
+                        </div> */}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  {/* Arrival Flight No */}
+                  <FormField
+                    control={form.control}
+                    name="arrivalFlightNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Arrival Flight No.</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <PlaneLanding className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                            <Input
+                              placeholder="e.g. BA456"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
 
-                {/* Phone */}
-                <FormField
-                  control={form.control}
-                  name="userPhone"
-                  render={({ field }) => (
-                    <FormItem className="sm:col-span-2">
-                      <FormLabel>
-                        Phone Number<span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                          <Input
-                            type="tel"
-                            placeholder="+44 7700 900000"
-                            className="pl-9"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            {/* ═══════════════════════════════════════════════ */}
-            {/*  VEHICLE DETAILS SECTION                       */}
-            {/* ═══════════════════════════════════════════════ */}
-            <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
-              <CardHeader className="p-0">
-                <CardTitle className="flex items-center gap-2 text-lg font-bold mb-4">
-                  <Car className="h-6 w-6 text-primary" />
-                  Vehicle Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid sm:grid-cols-2 gap-5 p-0">
-                {/* Car Make */}
-                <FormField
-                  control={form.control}
-                  name="carMake"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Car Make<span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                          <Input
-                            placeholder="e.g. Toyota"
-                            className="pl-9"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Car Model */}
-                <FormField
-                  control={form.control}
-                  name="carModel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Car Model<span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Car className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                          <Input
-                            placeholder="e.g. Corolla"
-                            className="pl-9"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Registration Number */}
-                <FormField
-                  control={form.control}
-                  name="carNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Registration Number
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                          <Input
-                            placeholder="e.g. AB12 CDE"
-                            className="pl-9 uppercase"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Car Colour */}
-                <FormField
-                  control={form.control}
-                  name="carColor"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Car Color<span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Palette className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                          <Input
-                            placeholder="e.g. Silver"
-                            className="pl-9"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            {/* ═══════════════════════════════════════════════ */}
-            {/*  FLIGHT DETAILS SECTION (OPTIONAL)             */}
-            {/* ═══════════════════════════════════════════════ */}
-            <Card className="rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary ring-0">
-              <CardHeader className="p-0">
-                <CardTitle className="flex items-center gap-2 text-lg font-bold mb-4">
-                  <PlaneTakeoff className="h-6 w-6 text-primary" />
-                  Flight Details
-                </CardTitle>
-                <CardDescription>
-                  Optional — helps us coordinate your parking
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid sm:grid-cols-2 gap-5 p-0">
-                {/* Departure Terminal */}
-                <FormField
-                  control={form.control}
-                  name="departureTerminal"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel>Departure Terminal</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <PlaneTakeoff className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                          <Input
-                            placeholder="e.g. T2"
-                            className="pl-9"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Departure Flight No */}
-                {/* <FormField
-                  control={form.control}
-                  name="departureFlightNo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Departure Flight No.</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <PlaneTakeoff className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                          <Input
-                            placeholder="e.g. BA123"
-                            className="pl-9"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                /> */}
-
-                {/* Arrival Terminal */}
-                <FormField
-                  control={form.control}
-                  name="arrivalTerminal"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Arrival Terminal</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <PlaneLanding className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                          <Input
-                            placeholder="e.g. T5"
-                            className="pl-9"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Arrival Flight No */}
-                <FormField
-                  control={form.control}
-                  name="arrivalFlightNo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Arrival Flight No.</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <PlaneLanding className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                          <Input
-                            placeholder="e.g. BA456"
-                            className="pl-9"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            {/* ── submit button ────────────────────────────── */}
-            <Button
-              type="submit"
-              className="w-full text-base font-semibold rounded-2xl"
-              disabled={mutation.isPending}
-            >
-              {mutation.isPending ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Redirecting to payment…
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5" />
-                  Pay Now
-                  {pricePreview
-                    ? ` — ${formatPrice(pricePreview.finalPrice)}`
-                    : ""}
-                </span>
-              )}
-            </Button>
-          </form>
-        </Form>
+              {/* ── submit button ────────────────────────────── */}
+              <Button
+                type="submit"
+                className="w-full text-base font-semibold rounded-2xl"
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Redirecting to payment…
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5" />
+                    Pay Now
+                    {pricePreview
+                      ? ` — ${formatPrice(pricePreview.finalPrice)}`
+                      : ""}
+                  </span>
+                )}
+              </Button>
+            </form>
+          </Form>
+        </div>
       </div>
-    </div>
     </>
   );
 }
@@ -794,4 +796,3 @@ export default function BookPage() {
     </Suspense>
   );
 }
-
