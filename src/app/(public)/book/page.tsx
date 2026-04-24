@@ -10,7 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { formatDayCount, formatPrice } from "@/lib/utils";
 import { DateTimePicker } from "@/components/ui/DatePicker";
-import {TerminalSelect} from "@/components/ui/TerminalPicker"
+import { TerminalSelect } from "@/components/ui/TerminalPicker";
 import PageHero from "@/components/shared/PageHero";
 import {
   Form,
@@ -251,6 +251,27 @@ function BookingFormContent() {
     };
     fetchPrice();
   }, [startTime, endTime]);
+
+  useEffect(() => {
+    const errors = form.formState.errors;
+
+    if (Object.keys(errors).length > 0) {
+      const firstErrorField = Object.keys(errors)[0];
+
+      const el = document.querySelector(
+        `[name="${firstErrorField}"]`,
+      ) as HTMLElement | null;
+
+      if (el) {
+        el.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+
+        el.focus({ preventScroll: true });
+      }
+    }
+  }, [form.formState.errors]);
 
   // ── submit mutation ────────────────────────────────────────────
   const mutation = useMutation({
@@ -673,10 +694,10 @@ function BookingFormContent() {
                       <FormItem className="col-span-2">
                         <FormLabel>Departure Terminal</FormLabel>
                         <FormControl>
-                           <TerminalSelect
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                  />
+                          <TerminalSelect
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
                           {/* <div className="relative">
                           <PlaneTakeoff className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary pointer-events-none z-10" />
                           <select
@@ -705,10 +726,10 @@ function BookingFormContent() {
                       <FormItem>
                         <FormLabel>Arrival Terminal</FormLabel>
                         <FormControl>
-                           <TerminalSelect
-          value={field.value}
-          onChange={field.onChange}
-        />
+                          <TerminalSelect
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
                           {/* <div className="relative">
                           <PlaneLanding className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary pointer-events-none z-10" />
                           <select
