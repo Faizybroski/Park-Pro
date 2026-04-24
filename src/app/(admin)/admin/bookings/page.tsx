@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
-import {
-  Booking,
-  BookingSelectionPayload,
-  BookingStatus,
-} from "@/types";
+import { Booking, BookingSelectionPayload, BookingStatus } from "@/types";
 import {
   formatDateTime,
   formatDayCount,
@@ -34,6 +30,7 @@ import {
   Download,
   FileText,
   Loader2,
+  Layers,
   Printer,
   ToggleLeft,
   ToggleRight,
@@ -188,7 +185,15 @@ export default function BookingsPage() {
         }
       }
     },
-    [activeTab, appliedSearch, appliedDateFrom, appliedDateTo, page, pageSize, showFeedback],
+    [
+      activeTab,
+      appliedSearch,
+      appliedDateFrom,
+      appliedDateTo,
+      page,
+      pageSize,
+      showFeedback,
+    ],
   );
 
   const fetchToggle = async () => {
@@ -345,7 +350,9 @@ export default function BookingsPage() {
       showFeedback({
         type: "error",
         message:
-          err instanceof Error ? err.message : "Failed to update booking status.",
+          err instanceof Error
+            ? err.message
+            : "Failed to update booking status.",
       });
     } finally {
       setUpdatingBookingId(null);
@@ -506,7 +513,8 @@ export default function BookingsPage() {
       if (!opened) {
         showFeedback({
           type: "error",
-          message: "Unable to open PDF export window. Check your popup blocker.",
+          message:
+            "Unable to open PDF export window. Check your popup blocker.",
         });
       }
     } catch (err) {
@@ -604,7 +612,9 @@ export default function BookingsPage() {
           setSelectedBooking(null);
         }
       } else {
-        const res = await api.bulkDeleteBookings(buildCurrentSelectionPayload());
+        const res = await api.bulkDeleteBookings(
+          buildCurrentSelectionPayload(),
+        );
         deletedCount = res.data.deletedCount;
         deletedIds = res.data.deletedIds;
         clearSelection();
@@ -657,10 +667,7 @@ export default function BookingsPage() {
           >
             Bookings
           </h1>
-          <p
-            className="text-sm"
-            style={{ color: "var(--muted-foreground)" }}
-          >
+          <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
             {total} total bookings
           </p>
         </div>
@@ -701,7 +708,9 @@ export default function BookingsPage() {
 
           <button
             onClick={() => void handleExport()}
-            disabled={exporting || (exportMode === "selection" && selectedCount === 0)}
+            disabled={
+              exporting || (exportMode === "selection" && selectedCount === 0)
+            }
             className="flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-all hover:shadow-md disabled:opacity-50"
             style={{
               borderColor: "var(--border)",
@@ -931,7 +940,10 @@ export default function BookingsPage() {
         style={{ background: "var(--card)", borderColor: "var(--border)" }}
       >
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <p className="text-sm font-medium" style={{ color: "var(--foreground)" }}>
+          <p
+            className="text-sm font-medium"
+            style={{ color: "var(--foreground)" }}
+          >
             {selectionSummary}
           </p>
           <div className="flex flex-wrap items-center gap-3 text-xs">
@@ -1066,16 +1078,18 @@ export default function BookingsPage() {
                     <p className="text-lg font-bold">
                       {formatPrice(currentTotalPrice)}
                     </p>
-                    {booking.lateChargeMode === "pending" && uptimePrice > 0 && (
-                      <p className="text-xs text-amber-600">
-                        Extra payment +{formatPrice(uptimePrice)}
-                      </p>
-                    )}
-                    {booking.lateChargeMode === "finalized" && uptimePrice > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        Late exit already added
-                      </p>
-                    )}
+                    {booking.lateChargeMode === "pending" &&
+                      uptimePrice > 0 && (
+                        <p className="text-xs text-amber-600">
+                          Extra payment +{formatPrice(uptimePrice)}
+                        </p>
+                      )}
+                    {booking.lateChargeMode === "finalized" &&
+                      uptimePrice > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Late exit already added
+                        </p>
+                      )}
                   </div>
 
                   <div className="flex flex-col gap-2">
@@ -1090,9 +1104,18 @@ export default function BookingsPage() {
                       >
                         {paymentStatusLabel}
                       </Badge>
+                      {booking.bookedVia && (
+                        <Badge className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] bg-violet-100 text-violet-700 border-violet-200">
+                          <Layers className="h-3 w-3" />
+                          {booking.bookedVia}
+                        </Badge>
+                      )}
                     </div>
 
-                    <div className="w-full" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="w-full"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Select
                         value={booking.status}
                         onValueChange={(value) =>
@@ -1455,7 +1478,9 @@ export default function BookingsPage() {
                       value === "completed" ? completionExitTime : undefined,
                     )
                   }
-                  disabled={selectedBookingUpdating || selectedBookingStatusLocked}
+                  disabled={
+                    selectedBookingUpdating || selectedBookingStatusLocked
+                  }
                 >
                   <SelectTrigger className="h-11 w-full rounded-xl bg-background">
                     <SelectValue placeholder="Select booking status" />

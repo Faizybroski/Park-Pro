@@ -52,6 +52,7 @@ export interface Booking {
   totalPrice: number;
   pricePerHour?: number;
   discountPercent?: number;
+  bookedVia?: string;
   createdAt: string;
   updatedAt: string;
 }
