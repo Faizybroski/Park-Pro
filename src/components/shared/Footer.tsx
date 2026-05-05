@@ -130,10 +130,10 @@ export default function Footer() {
           </p>
 
           <div className="flex gap-4">
-            <span className="hover:opacity-100 cursor-pointer">
+            <Link href="/policies" className="hover:opacity-100 cursor-pointer">
               Privacy Policy
-            </span>
-            <span className="hover:opacity-100 cursor-pointer">Terms</span>
+            </Link>
+            <Link href="/terms" className="hover:opacity-100 cursor-pointer">Terms</Link>
           </div>
         </div>
       </div>
