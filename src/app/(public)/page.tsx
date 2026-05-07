@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   ShieldCheck,
-  BadgeDollarSign,
-  Zap,
   Plane,
   Car,
   Clock,
@@ -16,11 +16,12 @@ import {
   CheckCircle2,
   CalendarDays,
   ClipboardCheck,
-  PlaneTakeoff,
-  Building2,
   MapPin,
   CreditCard,
-  Check,
+  Search,
+  ArrowRight,PlaneTakeoff,
+  BadgeDollarSign,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,79 +32,212 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import AirportPopover from "@/components/ui/AirportPicker";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { DateTimePicker } from "@/components/ui/DatePicker";
+import ParkingCard from "@/components/shared/PricingCard";
 import { api } from "@/lib/api";
 import type React from "react";
 
+// ─── Wheel SVG overlay — drawn on top of the car image ────────────────────────
+function WheelSVG() {
+  return (
+    <svg viewBox="0 0 60 60" className="w-full h-full" aria-hidden>
+      {/* Outer tyre */}
+      <circle cx="30" cy="30" r="29" fill="#111" />
+      {/* Rim */}
+      <circle cx="30" cy="30" r="19" fill="#2a2a2a" />
+      {/* 5 spokes */}
+      {[0, 72, 144, 216, 288].map((a) => (
+        <line
+          key={a}
+          x1="30" y1="11" x2="30" y2="30"
+          stroke="#999" strokeWidth="3.5" strokeLinecap="round"
+          transform={`rotate(${a} 30 30)`}
+        />
+      ))}
+      {/* Hub */}
+      <circle cx="30" cy="30" r="5" fill="#ccc" />
+      <circle cx="30" cy="30" r="2.5" fill="#555" />
+    </svg>
+  );
+}
+
+// ─── Scroll Animation Hook ─────────────────────────────────────────────────────
+
+function useInView(threshold = 0.12) {
+  const ref = useRef<HTMLElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          io.disconnect();
+        }
+      },
+      { threshold },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [threshold]);
+
+  return [ref, inView] as const;
+}
+
+// ─── Page Loader ───────────────────────────────────────────────────────────────
+
+function PageLoader({ onDone }: { onDone: () => void }) {
+  const [moved, setMoved] = useState(false);
+  const [fading, setFading] = useState(false);
+  // Real pixel position of the navbar logo — measured after mount
+  const [dest, setDest] = useState<{ left: number; top: number } | null>(null);
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+
+    // Measure the actual navbar logo so we fly to exactly the right spot
+    const navLogo = document.getElementById("navbar-logo");
+    if (navLogo) {
+      const r = navLogo.getBoundingClientRect();
+      setDest({ left: r.left, top: r.top });
+    }
+
+    const t1 = setTimeout(() => setMoved(true), 650);
+    const t2 = setTimeout(() => setFading(true), 1250);
+    const t3 = setTimeout(() => {
+      document.body.style.overflow = "";
+      onDone();
+    }, 1700);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      document.body.style.overflow = "";
+    };
+  }, [onDone]);
+
+  // Fall back to a safe default until the measurement resolves
+  const left = dest?.left ?? 24;
+  const top = dest?.top ?? 20;
+
+  return (
+    <div
+      className="fixed inset-0 bg-white z-[200]"
+      style={{
+        opacity: fading ? 0 : 1,
+        transition: fading ? "opacity 0.45s ease" : "none",
+        pointerEvents: fading ? "none" : "auto",
+      }}
+    >
+      {/*
+        Element sits at its real final position (left/top).
+        Transform starts it at the viewport center, then transitions to (0,0)
+        so it lands exactly on the navbar logo.
+      */}
+      <div
+        style={{
+          position: "fixed",
+          left: `${left}px`,
+          top: `${top}px`,
+          transform: moved
+            ? "translate(0, 0) scale(1)"
+            : `translate(calc(50vw - ${left}px - 50%), calc(50vh - ${top}px - 50%)) scale(2.2)`,
+          transition: moved
+            ? "transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)"
+            : undefined,
+          willChange: "transform",
+        }}
+      >
+        <Image src="/ParkPro.svg" alt="ParkPro" width={150} height={50} />
+      </div>
+    </div>
+  );
+}
+
 // ─── Data ──────────────────────────────────────────────────────────────────────
 
-const services = [
+const steps = [
   {
-    icon: Car,
-    title: "Meet & Greet",
-    desc: "Our team meets you at the terminal, takes your keys, and parks your car while you check in stress-free.",
-    color: "text-primary",
-    bg: "bg-orange-100",
+    num: "01",
+    icon: ClipboardCheck,
+    title: "Fill Details",
+    desc: "Enter your departure airport and travel dates to see live availability.",
   },
   {
-    icon: Building2,
-    title: "On-Airport Parking",
-    desc: "Stay close to the action with on-site parking — walk directly to departures without any wait.",
-    color: "text-emerald-600",
-    bg: "bg-emerald-50",
+    num: "02",
+    icon: ShieldCheck,
+    title: "Book Securely",
+    desc: "Complete your reservation in 60 sec with our SSL secure checkout.",
+  },
+  {
+    num: "03",
+    icon: PlaneTakeoff,
+    title: "Park & Fly",
+    desc: "Drop off your car and head to the terminal.",
   },
 ];
 
 const testimonials = [
   {
-    name: "Sarah M.",
-    role: "Frequent Flyer",
-    text: "Absolutely brilliant service! Booked within a minute and my car was safe the entire trip. Will definitely use again.",
+    name: "Sarah Jenkins",
+    role: "Verified Customer",
+    time: "2 days ago",
+    text: '"Saved over £40 on a week\'s parking at Gatwick compared to booking direct. The site was super easy to use and the Meet & Greet service was flawless."',
     stars: 5,
-    initials: "SM",
-    color: "bg-blue-500",
+    initials: "SJ",
+    color: "bg-blue-100 text-blue-700",
   },
   {
-    name: "James R.",
-    role: "Business Traveller",
-    text: "Best airport parking I've ever used. The price was unbeatable and the whole process was seamless.",
+    name: "Mark T.",
+    role: "Verified Customer",
+    time: "1 week ago",
+    text: '"Used ParkPro to find parking for Heathrow. Found a great off-airport option that took 5 mins on the bus. Highly recommend for the savings."',
     stars: 5,
-    initials: "JR",
-    color: "bg-purple-500",
+    initials: "MT",
+    color: "bg-emerald-100 text-emerald-700",
   },
   {
-    name: "Emily K.",
-    role: "Family Traveller",
-    text: "Used ParkPro for our family holiday. Easy booking, great price, and peace of mind knowing our car was secure.",
+    name: "Emma Williams",
+    role: "Verified Customer",
+    time: "3 weeks ago",
+    text: '"I always use this site now. It takes the stress out of finding parking and I know I\'m not getting ripped off. Customer service replied instantly too."',
     stars: 5,
-    initials: "EK",
-    color: "bg-emerald-500",
+    initials: "EW",
+    color: "bg-purple-100 text-purple-700",
   },
 ];
 
 const faqs = [
   {
-    q: "How do I book a parking space?",
-    a: "Simply enter your drop-off and pick-up dates, fill in your vehicle and contact details, and confirm your booking. You'll receive an instant confirmation with a unique tracking number.",
+    q: "How does ParkPro comparison work?",
+    a: "Simply enter your departure airport, drop-off, and pick-up dates. We query our extensive database of trusted parking providers to show you real-time availability and prices, allowing you to choose the best option.",
   },
   {
-    q: "Do I need to create an account?",
-    a: "No account needed! Just book and go. You'll receive a tracking number to manage your booking anytime.",
+    q: "Are there any hidden booking fees?",
+    a: "No. The price you see is the price you pay. We never add hidden fees or surcharges. Our pricing is completely transparent.",
   },
   {
-    q: "How is the price calculated?",
-    a: "Pricing is based on chargeable days and follows our current admin-managed pricing schedule. You will always see the live total before payment.",
+    q: "Can I cancel or amend my booking?",
+    a: "Yes. Most bookings can be amended or cancelled free of charge up to 24 hours before your drop-off date. Contact our support team with your booking reference.",
   },
   {
-    q: "Can I cancel or modify my booking?",
-    a: "Please contact our support team with your tracking number and we'll be happy to assist with any changes or cancellations.",
+    q: "Is my car secure while I'm away?",
+    a: "Absolutely. All our parking partners are carefully vetted and provide 24/7 CCTV surveillance, security patrols, and controlled access to ensure your vehicle is safe.",
   },
   {
-    q: "Is the car park secure?",
-    a: "Absolutely. Our facility has 24/7 CCTV surveillance, security patrols, and controlled access. Your vehicle is in safe hands.",
+    q: "How far in advance should I book?",
+    a: "We recommend booking as early as possible to secure the best prices and availability, especially during peak travel periods like school holidays and bank holidays.",
   },
 ];
+
+// ─── Static delay-class arrays (string literals so Tailwind scans them) ───────
+const stepDelays = ["delay-[0ms]", "delay-[220ms]", "delay-[440ms]"] as const;
+const testimonialDelays = ["delay-[0ms]", "delay-[180ms]", "delay-[360ms]"] as const;
 
 // ─── Page Component ────────────────────────────────────────────────────────────
 
@@ -113,6 +247,65 @@ export default function HomePage() {
   const [endDate, setEndDate] = useState("");
   const [startingDayPrice, setStartingDayPrice] = useState(12);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [pageVisible, setPageVisible] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
+
+  // Section visibility refs
+  const [howRef, howInView] = useInView();
+  const [smartRef, smartInView] = useInView();
+  const [servicesRef, servicesInView] = useInView();
+  const [testimonialsRef, testimonialsInView] = useInView();
+  const [moreRef, moreInView] = useInView();
+  const [faqRef, faqInView] = useInView();
+  const [ctaRef, ctaInView] = useInView();
+
+  // Car scroll animation — GSAP ScrollTrigger (same technique as ParkEase)
+  const carSectionRef = useRef<HTMLDivElement>(null);
+  const carRef = useRef<HTMLDivElement>(null);
+  const rearWheelRef = useRef<HTMLDivElement>(null);
+  const frontWheelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+
+    const section = carSectionRef.current;
+    const car = carRef.current;
+    if (!section || !car) return;
+
+    const ctx = gsap.context(() => {
+      // One timeline drives both the car translation and wheel rotation
+      // so they are perfectly in sync with the same scrub.
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "bottom bottom",
+          end: "+=2000",
+          scrub: true,
+          pin: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      // Car crosses from right to left
+      tl.fromTo(car, { x: "120vw" }, { x: "-20vw", ease: "none" }, 0);
+
+      // Wheels rotate at the same scrub rate.
+      // Car travels 140 vw; at 1440px viewport a ~26px-radius wheel
+      // makes ≈10 full turns — 3600° looks physically correct.
+      const wheels = [rearWheelRef.current, frontWheelRef.current].filter(Boolean);
+      if (wheels.length) {
+        tl.fromTo(
+          wheels,
+          { rotation: 0 },
+          { rotation: 3600, ease: "none" },
+          0,
+        );
+      }
+    }, section);
+
+    return () => ctx.revert();
+  }, []);
 
   const handleQuickBook = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -124,6 +317,21 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    const alreadyLoaded = sessionStorage.getItem("pp_loaded");
+    if (alreadyLoaded) {
+      setPageVisible(true);
+    } else {
+      setShowLoader(true);
+    }
+  }, []);
+
+  const handleLoaderDone = useCallback(() => {
+    setShowLoader(false);
+    setPageVisible(true);
+    sessionStorage.setItem("pp_loaded", "1");
+  }, []);
+
+  useEffect(() => {
     api
       .getStartingDayPrice()
       .then((res) => setStartingDayPrice(res.data))
@@ -131,740 +339,719 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="overflow-hidden">
-      {/* ══════════════════════════════════════════════════════
-          HERO
-      ══════════════════════════════════════════════════════ */}
-      {/* <section className="bg-image[url(/container.png)] relative overflow-hidden"> */}
-      <section className="bg-[url('/Container.png')] bg-cover bg-center relative overflow-hidden pt-10 lg:pt-0">
-        {/* Diagonal orange accent strips */}
-        <Image
-          src="/hero_strips.svg"
-          alt=""
-          width={1440}
-          height={900}
-          aria-hidden
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover hidden md:block"
-        />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left: headline + trust badges */}
-            <div className="animate-slide-up">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6 bg-primary/10 text-primary border border-primary/20">
-                <Plane className="w-3.5 h-3.5" />
-                Trusted by 50,000+ travellers
-              </div>
+    <>
+      {showLoader && <PageLoader onDone={handleLoaderDone} />}
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-5 text-foreground">
-                Park Smarter.{" "}
-                <span className="text-primary">Travel Stress‑Free.</span>
-              </h1>
-
-              <p className="text-lg text-muted-foreground mb-8 max-w-lg leading-relaxed">
-                Book your guaranteed airport parking space in under 60 seconds.
-                No account needed. Simple day-based pricing with no hidden fees.
-              </p>
-
-              {/* Mini trust badges */}
-              <div className="flex flex-wrap gap-2 mb-8">
-                {[
-                  { icon: ShieldCheck, label: "24/7 Security" },
-                  { icon: BadgeDollarSign, label: "Best Prices" },
-                  { icon: Zap, label: "Instant Booking" },
-                  { icon: MapPin, label: "Guaranteed Space" },
-                ].map(({ icon: Icon, label }) => (
-                  <div
-                    key={label}
-                    className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted rounded-full px-3 py-1.5 border border-border"
-                  >
-                    <Icon className="w-3.5 h-3.5 text-primary" />
-                    {label}
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  asChild
-                  className="px-8 py-3  font-bold text-base w-full md:w-auto"
-                >
-                  <Link href="/book">Book Now →</Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="px-8 py-3 rounded-full font-semibold text-base w-full md:w-auto"
-                >
-                  <Link href="/track">Track Booking</Link>
-                </Button>
-              </div>
-            </div>
-
-            {/* Right: orange booking widget */}
-            <div className="animate-fade-in hidden md:block">
-              <Card className="shadow-none rounded-2xl p-6 lg:p-8 bg-card text-card-foreground border border-primary">
-                <CardHeader className="p-0  text-primary">
-                  <CardTitle className="text-xl font-bold mb-1">
-                    Quick Price Check
-                  </CardTitle>
-                  <CardDescription className="text-sm mb-4  text-primary">
-                    Enter your dates to see pricing
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="p-0">
-                  <form onSubmit={handleQuickBook} className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label>Select Airport</Label>
-                      <AirportPopover/>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Drop-off Date & Time</Label>
-                      {/* <Input
-                        type="datetime-local"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        required
-                      /> */}
-                      <DateTimePicker
-                        value={startDate}
-                        onChange={setStartDate}
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label>Pick-up Date & Time</Label>
-                      {/* <Input
-                        type="datetime-local"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        required
-                      /> */}
-                      <DateTimePicker value={endDate} onChange={setEndDate} />
-                    </div>
-
-                    <Button className="w-full rounded-full">
-                      Check Price & Book
-                    </Button>
-                  </form>
-
-                  <p className="text-xs text-muted-foreground text-center mt-3">
-                    From £{startingDayPrice}/day • No hidden fees
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-            {/* <div className="animate-fade-in">
-              <div className="bg-primary rounded-2xl p-7 shadow-2xl">
-                <h2 className="text-xl font-bold text-white mb-1">
-                  Your Parking
-                </h2>
-                <p className="text-sm text-white/75 mb-6">
-                  Get an instant price estimate
-                </p>
-
-                <form onSubmit={handleQuickBook} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-white/90 mb-1.5">
-                      Drop-off Date & Time
-                    </label>
-                    <DateTimePicker value={startDate} onChange={setStartDate} />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-white/90 mb-1.5">
-                      Pick-up Date & Time
-                    </label>
-                    <DateTimePicker value={endDate} onChange={setEndDate} />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full bg-white text-primary font-bold py-3.5 rounded-xl text-base transition-all duration-200 hover:bg-orange-50 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    Check Price & Book →
-                  </button>
-                </form>
-
-                <p className="text-center text-xs text-white/60 mt-4">
-                  From £{startingDayPrice}/day · No hidden fees · Instant
-                  confirmation
-                </p>
-              </div>
-            </div> */}
-          </div>
-        </div>
-      </section>
-
-      {/* <div className="bg-[url('/full.svg')] bg-cover"> */}
-      {/* ══════════════════════════════════════════════════════
-          HOW IT WORKS
-      ══════════════════════════════════════════════════════ */}
-      <section className="py-20 relative overflow-hidden bg-primary-light/10 md:bg-transparent md:bg-[url('/left.svg')] bg-no-repeat bg-cover ">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
-              How It Works
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Book your secure parking space in four simple steps
-            </p>
-          </div>
-
-          {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {steps.map((step, i) => {
-              const Icon = step.icon;
-              return (
-                <div
-                  key={i}
-                  className="relative bg-background rounded-2xl p-6 shadow-sm border border-border text-center hover:shadow-md hover:border-primary/30 transition-all duration-300"
-                  style={{ animationDelay: `${i * 0.1}s` }}
-                >
-                  {i < steps.length - 1 && (
-                    <div className="hidden lg:block absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-6 h-0.5 bg-primary/30 z-10" />
-                  )}
-
-                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <Icon className="w-7 h-7 text-primary" />
-                  </div>
-                  <div className="text-xs font-extrabold text-primary mb-2 tracking-wider">
-                    {step.num}
-                  </div>
-                  <h3 className="text-base font-bold mb-1.5 text-foreground">
-                    {step.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">{step.desc}</p>
-                </div>
-              );
-            })}
-          </div> */}
-          <div className="relative">
-            {/* Line */}
-            {/* <div className="hidden lg:block absolute top-10 left-0 right-0 h-[2px] bg-border z-0" /> */}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 relative z-10">
-              {/* STEP 1 */}
-              <div className="text-center relative">
-                {/* Connector (RIGHT SIDE ONLY) */}
-                <div className="hidden lg:block absolute top-10 left-1/2 right-[-50%] h-[2px] bg-primary z-0" />
-
-                {/* Icon */}
-                <div className="relative inline-flex justify-center mb-6 z-10">
-                  <span className="absolute -top-2 -right-2 bg-foreground text-background text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">
-                    01
-                  </span>
-
-                  <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
-                    <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center">
-                      <CalendarDays className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </div>
-
-                <h3 className="text-lg font-semibold mb-2">Enter Dates</h3>
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                  Pick your drop-off and pick-up dates and times
-                </p>
-              </div>
-
-              {/* STEP 2 */}
-              <div className="text-center relative">
-                <div className="hidden lg:block absolute top-10 left-1/2 right-[-50%] h-[2px] bg-primary z-0" />
-
-                <div className="relative inline-flex justify-center mb-6 z-10">
-                  <span className="absolute -top-2 -right-2 bg-foreground text-background text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">
-                    02
-                  </span>
-                  <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
-                    <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center">
-                      <ClipboardCheck className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">
-                  Fill Details
-                </h3>
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                  Enter your car and contact information
-                </p>
-              </div>
-
-              {/* STEP 3 */}
-              <div className="text-center relative">
-                <div className="hidden lg:block absolute top-10 left-1/2 right-[-50%] h-[2px] bg-primary z-0" />
-
-                <div className="relative inline-flex justify-center mb-6 z-10">
-                  <span className="absolute -top-2 -right-2 bg-foreground text-background text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">
-                    03
-                  </span>
-                  <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
-                    <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center">
-                      <CheckCircle2 className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">
-                  Get Confirmed
-                </h3>
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                  Receive instant confirmation with your slot number
-                </p>
-              </div>
-
-              {/* STEP 4 */}
-              <div className="text-center relative">
-                <div className="relative inline-flex justify-center mb-6">
-                  <span className="absolute -top-2 -right-2 bg-foreground text-background text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">
-                    04
-                  </span>
-                  <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
-                    <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center">
-                      <PlaneTakeoff className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">
-                  Park & Fly
-                </h3>
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                  Drop off your car and head to the terminal
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════
-          PARKING OPTIONS
-      ══════════════════════════════════════════════════════ */}
-      {/* <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
-              Parking Options to Suit Every Trip
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Choose from a range of parking solutions tailored to your travel
-              needs
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {parkingOptions.map((opt, i) => {
-              const Icon = opt.icon;
-              return (
-                <Link
-                  key={i}
-                  href="/book"
-                  className="group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                >
-                  <div
-                    className={`h-52 bg-linear-to-br ${opt.gradient} flex items-center justify-center`}
-                  >
-                    <Icon className="w-16 h-16 text-white/70 group-hover:scale-110 transition-transform duration-300" />
-                  </div>
-
-                  <div className="absolute inset-0 bg-linear-to-t from-black/65 via-transparent to-transparent" />
-
-                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                    <h3 className="font-bold text-lg">{opt.title}</h3>
-                    <p className="text-sm opacity-80">{opt.desc}</p>
-                  </div>
-
-                  <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-0.5 text-xs text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                    Book →
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </section> */}
-
-      {/* ══════════════════════════════════════════════════════
-          OUR PARKING SERVICES
-      ══════════════════════════════════════════════════════ */}
-      <section className="py-20 md:bg-[url('/right.svg')] relative overflow-hidden bg-no-repeat bg-cover">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
-              Our Parking Services
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              We offer a range of services to make your airport experience
-              seamless
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {services.map((s, i) => {
-              const Icon = s.icon;
-              return (
-                <div
-                  key={i}
-                  className="group bg-background rounded-2xl p-7 shadow-sm border border-border hover:shadow-md hover:border-primary/20 transition-all duration-300"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div
-                      className={`w-14 h-14 rounded-2xl ${s.bg} flex items-center justify-center  group-hover:scale-110 transition-transform`}
-                    >
-                      <Icon className={`w-7 h-7 ${s.color}`} />
-                    </div>
-                    <h3 className="text-lg font-bold  text-foreground">
-                      {s.title}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                    {s.desc}
-                  </p>
-                  <Link
-                    href="/book"
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-primary group-hover:gap-2 transition-all"
-                  >
-                    Book now →
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════
-          COMPARE LIVE PARKING DEALS
-      ══════════════════════════════════════════════════════ */}
-      {/* <section className="py-20 bg-background">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
-              Compare Live Parking Deals
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Transparent pricing with no hidden fees
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-border overflow-hidden shadow-sm">
-            <div className="grid grid-cols-3 bg-primary/5 border-b border-border px-6 py-3">
-              <span className="text-sm font-semibold text-muted-foreground">
-                Location
-              </span>
-              <span className="text-sm font-semibold text-muted-foreground text-center">
-                Est. Price
-              </span>
-              <span className="text-sm font-semibold text-muted-foreground text-right">
-                Action
-              </span>
-            </div>
-
-            {deals.map((deal, i) => (
-              <div
-                key={i}
-                className={`grid grid-cols-3 items-center px-6 py-4 border-b border-border last:border-0 hover:bg-orange-50/40 transition-colors ${
-                  deal.popular ? "bg-orange-50/30" : "bg-background"
-                }`}
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-foreground text-sm">
-                      {deal.location}
-                    </p>
-                    {deal.popular && (
-                      <span className="text-[10px] font-bold bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">
-                        Popular
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {deal.duration}
-                  </p>
-                </div>
-                <p className="text-center text-lg font-bold text-primary">
-                  {deal.price}
-                </p>
-                <div className="flex justify-end">
-                  <Link
-                    href="/book"
-                    className="bg-primary text-primary-foreground text-sm font-semibold px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors"
-                  >
-                    Book Now
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <p className="text-center text-xs text-muted-foreground mt-4">
-            * Prices shown for illustrative purposes. Actual price is calculated
-            based on your specific dates.
-          </p>
-        </div>
-      </section> */}
-
-      {/* ══════════════════════════════════════════════════════
-          TESTIMONIALS
-      ══════════════════════════════════════════════════════ */}
-      <section className="py-20 relative overflow-hidden bg-primary-light/10 md:bg-transparent md:bg-[url('/left.svg')] bg-no-repeat bg-cover">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
-              Loved by Travelers
-            </h2>
-            <p className="text-muted-foreground">
-              See what our customers have to say
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <div
-                key={i}
-                className="bg-background rounded-2xl p-6 shadow-sm border border-border hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div
-                    className={`w-10 h-10 rounded-full ${t.color} flex items-center justify-center text-white font-bold text-sm shrink-0`}
-                  >
-                    {t.initials}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground text-sm">
-                      {t.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{t.role}</p>
-                  </div>
-                </div>
-
-                <div className="flex mb-3">
-                  {Array.from({ length: t.stars }).map((_, j) => (
-                    <Star
-                      key={j}
-                      className="w-4 h-4 text-yellow-400 fill-yellow-400"
-                    />
-                  ))}
-                </div>
-
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  &ldquo;{t.text}&rdquo;
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════
-          MORE THAN JUST A PARKING SPACE  (split section)
-      ══════════════════════════════════════════════════════ */}
-      <section className="py-16 relative overflow-hidden md:bg-[url('/right.svg')] bg-no-repeat bg-cover">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
-          {/* Card Container */}
-          <div className="grid lg:grid-cols-2 rounded-3xl overflow-hidden shadow-xl">
-            {/* Left Panel */}
-            <div className="bg-gradient-to-b from-primary to-primary-light px-8 py-16 lg:px-16 flex items-center">
-              <div className="text-white lg:max-w-md">
-                <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight mb-5">
-                  More Than Just A Parking Space.
-                </h2>
-
-                <p className="text-lg opacity-90 mb-6 leading-relaxed">
-                  At ParkPro, we&apos;re committed to making your airport
-                  experience as smooth as possible — from the moment you arrive
-                  to the moment you return home.
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                  {[
-                    {
-                      title: "No Hidden Fees",
-                      desc: "The price you see is the price you pay. No sneaky booking charges.",
-                      icon: CheckCircle2,
-                    },
-                    {
-                      title: "Price Match Guarantee",
-                      desc: "Find it cheaper elsewhere? We'll match it and refund the difference.",
-                      icon: CreditCard,
-                    },
-                    {
-                      title: "Book in 60 Seconds",
-                      desc: "Our streamlined checkout gets your spot confirmed instantly.",
-                      icon: Clock,
-                    },
-                    {
-                      title: "Flexible Cancellation",
-                      desc: "Plans change. Cancel up to 24 hours before for a full refund.",
-                      icon: ShieldCheck,
-                    },
-                  ].map((item, i) => {
-                    const Icon = item.icon;
-                    return (
-                      <div key={i} className="flex flex-col items-start gap-3">
-                        {/* Icon circle */}
-                        <div className="flex flex-row items-center lg:flex-col lg:items-start gap-3">
-                          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <Icon className="w-5 h-5 text-white" />
-                          </div>
-
-                          {/* Title */}
-                          <h4 className="text-white font-semibold text-lg">
-                            {item.title}
-                          </h4>
-                        </div>
-
-                        {/* Description */}
-                        <p className="text-white/80 text-sm leading-relaxed">
-                          {item.desc}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Image Panel */}
+      <div
+        className="overflow-hidden"
+        style={{
+          opacity: pageVisible ? 1 : 0,
+          transition: "opacity 0.35s ease",
+        }}
+      >
+        {/* ══════════════════════════════════════════════════════
+            HERO
+        ══════════════════════════════════════════════════════ */}
+        <section className="relative min-h-screen flex items-center bg-[url('/hero.svg')] bg-cover bg-center">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Shape 1 */}
             <div
-              className="min-h-[400px] hidden lg:block lg:min-h-full bg-cover bg-center"
-              style={{ backgroundImage: "url('/Service.png')" }}
+              className="absolute -left-10 -top-10 w-[700px] h-[700px] blur-3xl mix-blend-soft-light
+    bg-[radial-gradient(circle,rgba(255,255,255,1)_0%,rgba(255,255,255,1)_50%,rgba(255,255,255,0.2)_70%,transparent_100%)]"
+            />
+
+            {/* Shape 2 */}
+            <div
+              className="absolute -left-[300px] top-[250px] w-[900px] h-[600px] blur-3xl mix-blend-soft-light
+    bg-[radial-gradient(ellipse,rgba(255,255,255,0.9)_0%,rgba(255,255,255,0.8)_50%,transparent_85%)]"
             />
           </div>
-        </div>
-      </section>
-      {/* <section className="relative overflow-hidden ">
-        <div className="grid lg:grid-cols-2"> */}
-      {/* Left: orange panel with content */}
-      {/* <div className="bg-gradient-to-b from-primary to-primary-light px-8 py-16 lg:py-20 lg:px-16 flex items-center">
-            <div className="text-white max-w-md">
-              <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight mb-5">
-                More Than Just A Parking Space.
-              </h2>
-              <p className="text-lg opacity-85 mb-6 leading-relaxed">
-                At ParkPro, we&apos;re committed to making your airport
-                experience as smooth as possible — from the moment you arrive to
-                the moment you return home.
-              </p>
-              <ul className="space-y-3 mb-8">
-                {[
-                  "24/7 CCTV & security patrols",
-                  "Instant booking confirmation",
-                  "No account required",
-                  "Simple day-based pricing",
-                  "Real-time booking tracking",
-                ].map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-center gap-2 text-sm opacity-90"
-                  >
-                    <CheckCircle2 className="w-4 h-4 shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul> */}
-      {/* <Button
-                asChild
-                className="bg-white text-primary hover:bg-primary/10 hover:text-white font-bold px-8 py-3 rounded-xl border-0"
-              >
-                <Link href="/book">Start Booking →</Link>
-              </Button> */}
-      {/* </div>
-          </div> */}
+          {/* <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.8)_0%,rgba(255,255,255,0.6)_15%,rgba(255,255,255,0.3)_25%,transparent_40%),linear-gradient(to_bottom,rgba(255,255,255,0.4)_0%,transparent_60%)]" /> */}
+          {/* <Image
+            src="/hero_strips.svg"
+            alt=""
+            width={1440}
+            height={900}
+            aria-hidden
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover hidden md:block opacity-30"
+          /> */}
 
-      {/* Right: dark panel with icon graphic */}
-      {/* <div className="bg-[url('/PremiumService.png')] bg-cover bg-center min-h-[400px] flex items-center justify-center relative overflow-hidden"> */}
-      {/*Grid pattern overlay
-             <div className="absolute inset-0 opacity-10" />
-            <div className="text-center text-white relative z-10 p-8">
-              <div className="w-24 h-24 rounded-3xl bg-white/10 border border-white/20 flex items-center justify-center mx-auto mb-5">
-                <Car className="w-12 h-12 text-white/80" />
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 pt-28 sm:py-24 sm:pt-32 w-full">
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+              {/* Left */}
+              <div className="animate-slide-up">
+                {/* <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6 bg-white/10 text-white border border-white/25 backdrop-blur-sm">
+                  <Plane className="w-3.5 h-3.5 text-primary" />
+                  Trusted by 50,000+ travellers
+                </div> */}
+
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-[1.1] italic mb-5">
+                  <span className="text-primary">
+                    Park Smart&#46;
+                    <br />
+                    Fly Easy.
+                  </span>
+                </h1>
+
+                <p className="text-base sm:text-lg text-black/75 mb-8 max-w-lg leading-relaxed">
+                  Compare 50+ UK airport parking deals. Save up to{" "}
+                  <span className="text-primary font-bold">65%</span> on your
+                  next trip with our price match guarantee.
+                </p>
+
+                <div className="flex flex-wrap gap-3 mb-8">
+                  <Button
+                    asChild
+                    className="px-8 py-3 rounded-full text-base bg-primary btn-bubble"
+                  >
+                    <Link href="/book" className="bg-linear-to-r from-transparent to-black/50">
+                      Book Now →
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="px-8 py-3 rounded-full  text-base border-white text-black hover:bg-white/10 bg-white/30 backdrop-blur-md"
+                  >
+                    <Link href="#how-it-works">How it works</Link>
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  {/* Avatars + badge */}
+                  <div className="flex items-center">
+                    <div className="flex -space-x-3">
+                      <Avatar className="w-10 h-10 border-2 border-white">
+                        <AvatarImage src="/user1.png" />
+                        <AvatarFallback>U1</AvatarFallback>
+                      </Avatar>
+
+                      <Avatar className="w-10 h-10 border-2 border-white">
+                        <AvatarImage src="/user2.png" />
+                        <AvatarFallback>U2</AvatarFallback>
+                      </Avatar>
+
+                      <Avatar className="w-10 h-10 border-2 border-white">
+                        <AvatarImage src="/user3.png" />
+                        <AvatarFallback>U3</AvatarFallback>
+                      </Avatar>
+                      <Avatar className="w-10 h-10 border-3 border-white ">
+                        <AvatarImage src="/aw.png" />
+                        <AvatarFallback className="bg-orange-500 text-white bg-linear-to-r from-transparent  to-black/50">
+                          <div className="">10k+</div>
+                        </AvatarFallback>
+                      </Avatar>
+                      {/* <div className="w-10 h-10 flex items-center justify-center rounded-full bg-orange-500 text-white text-xs font-bold border-2 border-white">
+                        
+                      </div> */}
+                    </div>
+                  </div>
+
+                  {/* Rating */}
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                        />
+                      ))}
+                    </div>
+
+                    <span className="text-orange-500 text-sm font-semibold">
+                      4.8/5 Average Rating
+                    </span>
+                  </div>
+                </div>
               </div>
-              <p className="text-xl font-bold opacity-70 mb-1">
-                Secure Parking
+
+              {/* Right: booking widget */}
+              <div className="animate-fade-in">
+                <Card className="p-5 shadow-2xl rounded-4xl border-t-4 border-l bg-white/20 backdrop-blur-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xl font-bold text-white">
+                      Book Your Parking
+                    </CardTitle>
+                    <CardDescription className="text-white">
+                      Get an instant price comparison
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleQuickBook} className="space-y-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-white">Select Airport</Label>
+                        <AirportPopover />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-white">
+                          Drop-off Date & Time
+                        </Label>
+                        <DateTimePicker
+                          value={startDate}
+                          onChange={setStartDate}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-white">
+                          Pick-up Date & Time
+                        </Label>
+                        <DateTimePicker value={endDate} onChange={setEndDate} />
+                      </div>
+                      <Button className="w-full rounded-full py-3 text-base font-bold bg-primary bg-linear-to-r from-transparent via-transparent to-black/30 btn-bubble">
+                        Book Now
+                      </Button>
+                    </form>
+                    <p className="text-xs text-muted-foreground text-center mt-3">
+                      From £{startingDayPrice}/day · No hidden fees · Instant
+                      confirmation
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════
+            HOW IT WORKS
+        ══════════════════════════════════════════════════════ */}
+        <section
+          id="how-it-works"
+          className="py-16 sm:py-24"
+          // style={{
+          //   background:
+          //     "radial-gradient(ellipse at top left, #fde8d0 0%, #fef3ea 40%, #fef8f4 70%, #fff8f3 100%)",
+          // }}
+          ref={howRef as React.RefObject<HTMLElement>}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Header */}
+            <div
+              className={`text-center mb-12 sm:mb-20 transition-all duration-700 ${
+                howInView
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-8"
+              }`}
+            >
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold italic mb-4 text-[#1a2332]">
+                How It Works
+              </h2>
+              <p className="text-gray-500 max-w-md mx-auto text-base leading-relaxed">
+                Securing your airport parking is as easy as 1-2-3. Save time
+                and money with ParkPro.
               </p>
-              <p className="text-sm opacity-40">24/7 monitored facility</p>
-              <div className="flex items-center justify-center gap-4 mt-6">
-                {[ShieldCheck, Smartphone, MapPin].map((Icon, i) => (
+            </div>
+
+            {/* Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 sm:gap-8">
+              {steps.map((step, i) => {
+                const Icon = step.icon;
+
+                return (
                   <div
                     key={i}
-                    className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center"
-                  >
-                    <Icon className="w-5 h-5 text-white/60" />
-                  </div>
-                ))}
-              </div>
-            </div> */}
-      {/* </div>
-        </div>
-      </section> */}
-
-      {/* ══════════════════════════════════════════════════════
-          FAQs
-      ══════════════════════════════════════════════════════ */}
-      <section className="py-20 relative overflow-hidden bg-primary-light/10 md:bg-transparent md:bg-[url('/left.svg')] bg-no-repeat bg-cover">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-muted-foreground">
-              Find answers to common questions about our service
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            {faqs.map((faq, i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-border overflow-hidden shadow-sm bg-background"
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full text-left px-6 py-4 flex justify-between items-center font-medium text-foreground hover:bg-muted/50 transition-colors"
-                >
-                  <span>{faq.q}</span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-muted-foreground shrink-0 ml-4 transition-transform duration-200 ${
-                      openFaq === i ? "rotate-180" : ""
+                    className={`relative flex flex-col sm:flex-row items-center sm:items-start gap-2 transition-all duration-700 ${stepDelays[i]} ${
+                      howInView
+                        ? "opacity-100 translate-y-0"
+                        : "opacity-0 translate-y-20"
                     }`}
-                  />
-                </button>
-                {openFaq === i && (
-                  <div className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed animate-fade-in border-t border-border pt-3">
-                    {faq.a}
+                  >
+                    {/* Big number */}
+                    <div className="text-[64px] sm:text-[90px] font-extrabold text-orange-500 leading-none select-none sm:mt-10 shrink-0 w-16 sm:w-20 text-center sm:text-right">
+                      {step.num}
+                    </div>
+
+                    {/* Card + background circle wrapper */}
+                    <div className="relative flex-1 flex justify-center">
+                      {/* Peach circle behind card */}
+                      <div className="absolute -bottom-6 -right-4 w-40 h-40 rounded-full bg-orange-100/80" />
+
+                      {/* Card — no overflow-hidden here so the floating icon above it isn't clipped */}
+                      <div className="relative z-10 w-full bg-white rounded-3xl pt-14 pb-8 px-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-gray-100/80 text-center group card-hover hover-border-pop">
+                        {/* Shimmer overlay keeps its own overflow-hidden so it stays within the card */}
+                        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl z-20">
+                          <div className="absolute -left-1/2 top-0 h-full w-1/2 bg-gradient-to-r from-transparent via-white/60 to-transparent skew-x-[-20deg] opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_1.2s_ease-in-out]" />
+                        </div>
+
+                        {/* Floating icon */}
+                        <div className="absolute -top-7 left-1/2 -translate-x-1/2">
+                          <div className="w-14 h-14 rounded-full bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)] flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
+                              <Icon className="w-5 h-5 text-white" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                          {step.title}
+                        </h3>
+                        <p className="text-sm text-gray-500 leading-relaxed">
+                          {step.desc}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                )}
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════
+            SMART PARKING — Split section
+        ══════════════════════════════════════════════════════ */}
+        <section
+          className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16"
+          ref={smartRef as React.RefObject<HTMLElement>}
+        >
+          <div className="max-w-2xl mx-auto text-center">
+
+            {/* Content */}
+            <div
+              className={`transition-all duration-700 ${
+                smartInView
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-8"
+              }`}
+            >
+              <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight text-[#1a2332] mb-5">
+                Smart Parking.{" "}
+                <span className="italic">Designed for Every Journey.</span>
+              </h2>
+
+              <p className="text-gray-600 text-base sm:text-lg leading-relaxed mb-8 max-w-lg mx-auto">
+                From quick drop-offs to extended long-term stays, discover a
+                parking experience designed to adapt to your needs. Whether
+                you're traveling for business or leisure, our solutions offer
+                seamless access, advanced security, and complete peace of mind.
+              </p>
+
+              <Button className="rounded-full px-8 bg-orange-500 hover:bg-orange-600 bg-linear-to-r from-transparent to-black/30 text-white shadow-md btn-bubble">
+                See Services Below
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════
+            OUR PARKING SERVICES
+        ══════════════════════════════════════════════════════ */}
+        <section
+          className="py-16 sm:py-24 bg-background"
+          ref={servicesRef as React.RefObject<HTMLElement>}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div
+              className={`text-center mb-8 sm:mb-14 transition-all duration-700 ${servicesInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            >
+              <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
+                Our Parking Services
+              </h2>
+              <p className="text-muted-foreground max-w-xl mx-auto">
+                Choose the perfect parking type for your needs and budget. We
+                partner with top-rated operators to ensure quality.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Slides in from the LEFT */}
+              <div
+                className={`transition-all duration-700 ease-out ${
+                  servicesInView
+                    ? "opacity-100 translate-x-0"
+                    : "opacity-0 -translate-x-24"
+                }`}
+              >
+                <ParkingCard
+                  title="Meet & Greet"
+                  description="Drive straight to the terminal and hand your keys to a fully insured professional chauffeur."
+                  image="/service1.png"
+                />
               </div>
-            ))}
+
+              {/* Slides in from the RIGHT — delayed 200ms */}
+              <div
+                className={`transition-all duration-700 ease-out delay-[200ms] ${
+                  servicesInView
+                    ? "opacity-100 translate-x-0"
+                    : "opacity-0 translate-x-24"
+                }`}
+              >
+                <ParkingCard
+                  title="On-Airport Parking"
+                  description="Park directly within the airport grounds for maximum convenience and shortest walk times."
+                  image="/service2.png"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════
+            LOVED BY TRAVELERS + CAR ANIMATION
+            GSAP ScrollTrigger pins when section bottom hits
+            viewport bottom, scrubs car across for 2000px of
+            scroll, then releases — no white gaps, no manual math.
+        ══════════════════════════════════════════════════════ */}
+        <div ref={carSectionRef} className="bg-background overflow-hidden">
+          {/* ── Testimonials ──────────────────────────────── */}
+          <div
+            ref={testimonialsRef as React.RefObject<HTMLDivElement>}
+            className="py-12 px-4 sm:px-6 lg:px-8"
+          >
+            <div className="max-w-7xl mx-auto">
+              {/* HEADER */}
+              <div
+                className={`flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 transition-all duration-700 ${
+                  testimonialsInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                }`}
+              >
+                <div className="max-w-lg">
+                  <h2 className="text-3xl sm:text-4xl font-bold italic text-foreground mb-3">
+                    Loved by Travelers
+                  </h2>
+                  <p className="text-muted-foreground text-sm leading-relaxed max-w-sm">
+                    Don&apos;t just take our word for it. Read what over 10,000
+                    satisfied customers have to say about their ParkPro
+                    experience.
+                  </p>
+                </div>
+
+                {/* Rating */}
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-right">
+                    <p className="text-3xl font-extrabold text-foreground leading-none">
+                      4.8/5
+                    </p>
+                    <div className="flex gap-0.5 mt-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <span className="text-sm text-muted-foreground font-medium">
+                    Trustpilot
+                  </span>
+                </div>
+              </div>
+
+              {/* CARDS — card 0 from left, card 1 from bottom, card 2 from right */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {testimonials.map((t, i) => {
+                  const entryClass =
+                    i === 0
+                      ? testimonialsInView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-20"
+                      : i === 1
+                      ? testimonialsInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
+                      : testimonialsInView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-20";
+
+                  return (
+                    <div
+                      key={i}
+                      className={`relative bg-white rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.07)] border border-gray-100 flex flex-col overflow-hidden group card-hover hover-border-pop transition-all duration-700 ease-out ${testimonialDelays[i]} ${entryClass}`}
+                    >
+                      {/* Shimmer overlay */}
+                      <div className="pointer-events-none absolute inset-0 overflow-hidden z-10">
+                        <div className="absolute -left-1/2 top-0 h-full w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-20deg] opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_1.2s_ease-in-out]" />
+                      </div>
+
+                      <div className="flex gap-0.5 mb-4">
+                        {[...Array(t.stars)].map((_, j) => (
+                          <Star
+                            key={j}
+                            className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                          />
+                        ))}
+                      </div>
+                      <p className="text-sm text-gray-600 leading-relaxed flex-1 mb-6">
+                        {t.text}
+                      </p>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-9 h-9 rounded-full ${t.color} flex items-center justify-center font-bold text-xs shrink-0`}
+                        >
+                          {t.initials}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm text-foreground leading-tight">
+                            {t.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t.role} {"•"} {t.time}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Car strip ─────────────────────────────────── */}
+          <div style={{ height: "240px", position: "relative", overflow: "hidden" }}>
+            <div className="absolute inset-0 bg-[url('/road.png')] bg-cover bg-[center_75%]" />
+            <div className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-background to-transparent z-10" />
+            <div className="absolute inset-0 bg-black/10" />
+            {/* Car wrapper — GSAP animates translateX on this div */}
+            <div
+              ref={carRef}
+              className="absolute bottom-0 left-0 h-40 sm:h-52"
+              style={{ willChange: "transform" }}
+            >
+              <Image
+                src="/car.svg"
+                alt=""
+                width={500}
+                height={220}
+                aria-hidden
+                className="h-full w-auto"
+              />
+
+              {/* Rear wheel overlay — sits on top of the car image wheel */}
+              {/* <div
+                ref={rearWheelRef}
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: "17%",
+                  height: "35%",
+                  aspectRatio: "1",
+                  transformOrigin: "center center",
+                }}
+              >
+                <WheelSVG />
+              </div>
+
+              
+              <div
+                ref={frontWheelRef}
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: "73%",
+                  height: "35%",
+                  aspectRatio: "1",
+                  transformOrigin: "center center",
+                }}
+              >
+                <WheelSVG />
+              </div> */}
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* ══════════════════════════════════════════════════════
-          CTA BANNER
-      ══════════════════════════════════════════════════════ */}
-      <section className="py-16 bg-[url('/readyToSave.svg')] bg-cover bg-center relative overflow-hidden">
-        {/* <Image src="/readyToSave.svg" alt="" width={1440} height={353} /> */}
-        {/* Decorative angled shapes */}
-        {/* <div className="pointer-events-none absolute -right-20 top-0 h-full w-64 bg-white/5 rotate-12 rounded-3xl" /> */}
-        {/* <div className="pointer-events-none absolute -left-16 bottom-0 h-full w-48 bg-white/5 -rotate-12 rounded-3xl" /> */}
-        <div className="relative max-w-4xl mx-auto px-4 text-center text-white">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-3">
-            Ready to Save on Airport Parking?
-          </h2>
-          <p className="text-lg opacity-80 mb-8 max-w-xl mx-auto">
-            Book your guaranteed parking space today and travel with complete
-            peace of mind.
-          </p>
-          <Button
-            asChild
-            className="bg-white text-primary hover:bg-primary hover:text-white font-bold px-10 py-4 rounded-xl text-lg border-0"
+        {/* ══════════════════════════════════════════════════════
+            MORE THAN JUST A PARKING SPACE
+        ══════════════════════════════════════════════════════ */}
+        <section className="py-12 sm:py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* bg via CSS so it shows behind flowing content on mobile */}
+            <div
+              className="relative rounded-[30px] overflow-hidden lg:min-h-[680px] bg-cover bg-center"
+              style={{ backgroundImage: 'url("/Service.png")' }}
+            >
+              {/* Glass overlay — normal flow on mobile, absolute on lg+ */}
+              <div className="relative lg:absolute lg:inset-0 flex">
+                {/* GLASS PANE */}
+                <div className="w-full lg:w-[50%] lg:h-full backdrop-blur-sm bg-white/20 rounded-[30px] lg:rounded-none">
+                  <div className="relative z-10 flex items-start lg:items-center p-6 sm:p-10 lg:p-16 text-white">
+                    <div className="max-w-xl w-full py-2 lg:py-0">
+                      {/* Tag */}
+                      <span className="text-[11px] px-3 py-1 rounded-full bg-white/20 inline-block mb-4 tracking-wide">
+                        Why ParkPro
+                      </span>
+
+                      {/* Heading */}
+                      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold italic leading-[1.15] mb-4 tracking-tight">
+                        More Than Just A Parking Space.
+                      </h2>
+
+                      {/* Description */}
+                      <p className="text-white/75 text-sm leading-[1.8] mb-5 max-w-md">
+                        We take the stress out of airport parking by providing
+                        full transparency, unbeatable prices, and award-winning
+                        support.
+                      </p>
+
+                      {/* FEATURES — always 2-col so all four items fit on mobile */}
+                      <div className="grid grid-cols-2 gap-x-4 sm:gap-x-10 gap-y-5 sm:gap-y-8">
+                        {[
+                          {
+                            title: "No Hidden Fees",
+                            desc: "The price you see is the price you pay. No sneaky booking charges.",
+                            icon: CheckCircle2,
+                          },
+                          {
+                            title: "Price Match",
+                            desc: "Find it cheaper elsewhere? We'll match it and refund the difference.",
+                            icon: CreditCard,
+                          },
+                          {
+                            title: "Book in 60s",
+                            desc: "Our streamlined checkout gets your spot confirmed instantly.",
+                            icon: Clock,
+                          },
+                          {
+                            title: "Flexible Cancel",
+                            desc: "Plans change. Cancel up to 24 hours before for a full refund.",
+                            icon: ShieldCheck,
+                          },
+                        ].map((item, i) => {
+                          const Icon = item.icon;
+                          return (
+                            <div key={i} className="flex flex-col items-start gap-2 sm:gap-3">
+                              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/15 flex items-center justify-center shrink-0">
+                                <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white/90" />
+                              </div>
+                              <h4 className="font-semibold text-sm sm:text-[15px] text-white/95">
+                                {item.title}
+                              </h4>
+                              <p className="text-xs sm:text-[13px] text-white/60 leading-relaxed">
+                                {item.desc}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right side empty on lg+ */}
+                <div className="hidden lg:block flex-1" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════
+            FAQs
+        ══════════════════════════════════════════════════════ */}
+        <section
+          className="py-16 sm:py-24 bg-background"
+          ref={faqRef as React.RefObject<HTMLElement>}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* HEADER (CENTERED) */}
+            <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-muted-foreground leading-relaxed">
+                Got a question? We&apos;ve got answers. If you can&apos;t find
+                what you&apos;re looking for, our support team is available
+                24/7.
+              </p>
+            </div>
+
+            {/* CONTENT */}
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-start">
+              {/* IMAGE */}
+              <div className="hidden lg:block lg:pr-4">
+                <div className="rounded-[28px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.12)]">
+                  <img
+                    src="/faqs.png"
+                    className="w-full h-[420px] object-cover"
+                  />
+                </div>
+              </div>
+
+              {/* ACCORDION */}
+              <div className="space-y-5">
+                {faqs.map((faq, i) => {
+                  const isOpen = openFaq === i;
+
+                  return (
+                    <div
+                      key={i}
+                      className={`rounded-2xl transition-all duration-300 ${
+                        isOpen
+                          ? "bg-[#f8f8f8] shadow-[0_10px_30px_rgba(0,0,0,0.08)] border-t-3 border-t-orange-400"
+                          : "bg-[#f3f3f3] hover:bg-[#eeeeee] shadow-[0_4px_15px_rgba(0,0,0,0.05)]"
+                      }`}
+                    >
+                      <button
+                        onClick={() => setOpenFaq(isOpen ? null : i)}
+                        className="w-full flex justify-between items-center px-4 sm:px-7 py-4 sm:py-5 text-left"
+                      >
+                        <span className="font-semibold text-sm sm:text-[15.5px] leading-relaxed">
+                          {faq.q}
+                        </span>
+
+                        <ChevronDown
+                          className={`w-5 h-5 transition-transform ${
+                            isOpen ? "rotate-180 text-orange-500" : ""
+                          }`}
+                        />
+                      </button>
+
+                      <div
+                        className={`overflow-hidden ${isOpen ? "max-h-[200px]" : "max-h-0"}`}
+                      >
+                        <div className="px-4 sm:px-7 pb-5 sm:pb-6 text-sm text-muted-foreground leading-relaxed">
+                          {faq.a}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════
+            CTA BANNER
+        ══════════════════════════════════════════════════════ */}
+        {/* <section
+          className="py-20 bg-[#1a2332] relative overflow-hidden"
+          ref={ctaRef as React.RefObject<HTMLElement>}
+        >
+          <div className="cta-grid-pattern absolute inset-0 opacity-5" />
+
+          <div
+            className={`relative max-w-3xl mx-auto px-4 text-center transition-all duration-700 ${ctaInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
-            <Link href="/book">Book Now — From £{startingDayPrice}/day</Link>
-          </Button>
-        </div>
-      </section>
-      {/* </div> */}
-    </div>
+            <div className="flex items-center justify-center gap-2 mb-5">
+              <Image src="/logo.svg" alt="ParkPro" width={28} height={28} />
+              <p className="flex items-center text-sm text-primary uppercase leading-none">
+                <span className="font-bold">Park</span>
+                <span className="font-normal">Pro</span>
+              </p>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-white">
+              Ready to Save on Airport Parking with ParkPro?
+            </h2>
+            <p className="text-white/55 mb-10 max-w-xl mx-auto leading-relaxed">
+              Join millions of smart travellers who compare and book with
+              ParkPro. Enter your dates and let&apos;s find you the best deal.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-sm mx-auto">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Select airport"
+                  readOnly
+                  className="w-full pl-10 pr-4 py-3 rounded-full bg-white text-foreground text-sm focus:outline-none cursor-pointer"
+                  onClick={() => router.push("/book")}
+                />
+              </div>
+              <Button
+                asChild
+                className="rounded-full px-8 py-3 font-bold shrink-0 w-full sm:w-auto"
+              >
+                <Link href="/book">Find Parking</Link>
+              </Button>
+            </div>
+          </div>
+        </section> */}
+      </div>
+    </>
   );
 }

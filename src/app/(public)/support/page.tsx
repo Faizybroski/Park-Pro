@@ -12,27 +12,27 @@ export default function SupportPage() {
       <section className="py-16 max-w-4xl mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-8">
           <div className="space-y-6">
-            <div className="rounded-2xl border p-6" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+            <div className="rounded-2xl border p-6 hover-border-pop" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
               <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--foreground)' }}>Quick Help</h2>
               <div className="space-y-3">
-                <Link href="/track" className="block p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: 'var(--border)' }}>
+                <Link href="/track" className="group block p-4 rounded-xl border transition-all card-hover hover-shimmer hover-border-pop" style={{ borderColor: 'var(--border)' }}>
                   <p className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>📍 Track My Booking</p>
                   <p className="text-xs mt-1" style={{ color: 'var(--muted-foreground)' }}>Check your booking status with your tracking number</p>
                 </Link>
-                <Link href="/faqs" className="block p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: 'var(--border)' }}>
+                <Link href="/faqs" className="group block p-4 rounded-xl border transition-all card-hover hover-shimmer hover-border-pop" style={{ borderColor: 'var(--border)' }}>
                   <p className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>❓ FAQs</p>
                   <p className="text-xs mt-1" style={{ color: 'var(--muted-foreground)' }}>Find answers to common questions</p>
                 </Link>
-                <Link href="/contact" className="block p-4 rounded-xl border transition-all hover:shadow-md" style={{ borderColor: 'var(--border)' }}>
+                <Link href="/contact" className="group block p-4 rounded-xl border transition-all card-hover hover-shimmer hover-border-pop" style={{ borderColor: 'var(--border)' }}>
                   <p className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>📧 Contact Us</p>
                   <p className="text-xs mt-1" style={{ color: 'var(--muted-foreground)' }}>Get in touch directly</p>
                 </Link>
               </div>
             </div>
-            <div className="rounded-2xl border p-6" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+            <div className="rounded-2xl border p-6 hover-border-pop card-hover" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
               <h3 className="font-bold mb-2" style={{ color: 'var(--foreground)' }}>Emergency Contact</h3>
               <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>For urgent matters, call us at:</p>
-              <p className="text-lg font-bold mt-2" style={{ color: 'var(--primary)' }}>+44 20 7946 0958</p>
+              <p className="text-lg font-bold mt-2" style={{ color: 'var(--primary)' }}>07927 970960</p>
               <p className="text-xs mt-1" style={{ color: 'var(--muted-foreground)' }}>Available 24/7</p>
             </div>
           </div>
@@ -57,7 +57,7 @@ export default function SupportPage() {
                   <option value="other">Other</option>
                 </select>
                 <textarea rows={4} placeholder="Describe your issue" required className="w-full px-4 py-3 rounded-xl border text-sm resize-none" style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
-                <button type="submit" className="w-full py-3 rounded-xl text-white font-bold" style={{ background: 'var(--primary)' }}>Submit Request</button>
+                <button type="submit" className="w-full py-3 rounded-xl text-white font-bold btn-bubble transition-opacity hover:opacity-90" style={{ background: 'var(--primary)' }}>Submit Request</button>
               </form>
             )}
           </div>

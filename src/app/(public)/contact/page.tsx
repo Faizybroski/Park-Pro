@@ -277,14 +277,14 @@ export default function ContactPage() {
               return (
                 <div
                   key={i}
-                  className="rounded-2xl border p-5 flex items-start gap-4"
+                  className="group rounded-2xl border p-5 flex items-start gap-4 card-hover hover-shimmer hover-border-pop"
                   style={{
                     background: "var(--card)",
                     borderColor: "var(--border)",
                   }}
                 >
                   <div
-                    className={`w-11 h-11 flex items-center justify-center rounded-xl ${item.bg} shrink-0 group-hover:scale-110 transition`}
+                    className={`w-11 h-11 flex items-center justify-center rounded-xl ${item.bg} shrink-0 icon-pop`}
                   >
                     <Icon className={`w-5 h-5 ${item.color}`} />
                   </div>

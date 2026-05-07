@@ -11,88 +11,87 @@ export default function Footer() {
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <footer className="relative bg-gradient-to-br from-primary to-primary-light text-white overflow-hidden">
-      {/* Background SVG Layer */}
-      {/* <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="w-full h-full bg-[url('/footer.svg')] bg-no-repeat bg-right-bottom bg-[length:400px] sm:bg-[length:500px] md:bg-[length:600px]" />
-      </div> */}
-      <Image
-        src="/footer.png"
-        alt=""
-        width={500}
-        height={655}
-        className="absolute bottom-0 right-0 opacity-10 pointer-events-none w-[300px] sm:w-[400px] md:w-[500px] h-auto"
-      />
 
-      {/* Content */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Brand */}
-          <div>
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <Image src="/FooterLogo.svg" alt="Logo" width={32} height={32} />
-              <p className="text-lg uppercase leading-none">
-                <span className="font-bold">Park</span>
-                <span className="font-light">Pro</span>
+      <footer className="relative rounded-tl-[42px] rounded-tr-[42px] ring ring-white/20 overflow-hidden">
+        {/* Background image */}
+        <div className="absolute inset-0">
+          <Image src={"/footerbg.png"} alt="" fill className="object-cover" />
+        </div>
+        <div className="absolute inset-0 bg-black/10 rounded-tl-[42px] rounded-tr-[42px]" />
+
+        <div className="relative z-10 px-4 sm:px-8 lg:px-10 pt-8 sm:pt-10">
+          {/* Top white card */}
+
+          <div className="bg-transparent backdrop-blur-xs ring ring-white/20 rounded-[24px] sm:rounded-[34px] p-6 sm:p-10 mb-8 sm:mb-10 grid grid-cols-2  lg:grid-cols-4 gap-6 ">
+            {/* Brand – spans full width on mobile, 2 cols on sm, 1 col on lg */}
+            <div className="col-span-2 sm:col-span-4 lg:col-span-1">
+              <Link href="/" className="inline-flex mb-5">
+                <Image
+                  // src="/purple_logo.svg"
+                  src="/footer_logo.png"
+                  alt="Logo"
+                  width={200}
+                  height={80}
+                />
+              </Link>
+              <p className="text-white text-sm leading-relaxed max-w-[252px] mb-6">
+                Secure, affordable airport parking with guaranteed spaces. Book
+                online and travel stress-free.
               </p>
-            </Link>
+            </div>
 
-            <p className="text-sm opacity-70 leading-relaxed max-w-sm">
-              Secure, affordable airport parking with guaranteed spaces. Book
-              online and travel stress-free.
-            </p>
-          </div>
+            {/* Quick Links */}
+            <div>
+              <h4 className="font-bold text-white text-base mb-4">
+                Quick Links
+              </h4>
+              <ul className="space-y-2 text-sm">
+                {[
+                  { href: "/", label: "Home" },
+                  { href: "/book", label: "Book Parking" },
+                  { href: "/track", label: "Track Booking" },
+                ].map(({ href, label }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      className="text-white opacity-70 hover:opacity-100 transition"
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          {/* Quick Links */}
-          <div>
-            <h4 className="font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2 text-sm">
-              {[
-                { href: "/", label: "Home" },
-                { href: "/book", label: "Book Parking" },
-                { href: "/track", label: "Track Booking" },
-              ].map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="opacity-70 hover:opacity-100 transition"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+            {/* Support */}
+            <div>
+              <h4 className="font-bold text-white text-base mb-4">Support</h4>
+              <ul className="space-y-2 text-sm">
+                {[
+                  { href: "/faqs", label: "FAQs" },
+                  { href: "/contact", label: "Contact Us" },
+                  // { href: "/support", label: "Support" },
+                  { href: "/about", label: "About Us" },
+                ].map(({ href, label }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      className="text-white opacity-70 hover:opacity-100 transition"
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          {/* Support */}
-          <div>
-            <h4 className="font-semibold mb-4">Support</h4>
-            <ul className="space-y-2 text-sm">
-              {[
-                { href: "/faqs", label: "FAQs" },
-                { href: "/contact", label: "Contact Us" },
-                // { href: "/support", label: "Support" },
-                { href: "/about", label: "About Us" },
-              ].map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="opacity-70 hover:opacity-100 transition"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h4 className="font-semibold mb-4">Contact Us</h4>
-
-            <div className="space-y-3 text-sm">
-              {/* <div className="flex items-start gap-3 opacity-70 hover:opacity-100 transition">
-                <MapPin className="w-4 h-4 mt-1 shrink-0" />
+            {/* Legal */}
+            <div>
+              <h4 className="font-bold text-white text-base mb-4">
+                Contact Us
+              </h4>
+              <div className="space-y-3 text-sm">
+                {/* <div className="flex items-start gap-3 opacity-70 hover:opacity-100 transition">
                 <a
                   href="https://maps.app.goo.gl/5Kpmej29MWZ5qRbD7"
                   target="_blank"
@@ -102,148 +101,46 @@ export default function Footer() {
                 </a>
               </div> */}
 
-              <div className="flex items-center gap-3 opacity-70 hover:opacity-100 transition">
-                <Phone className="w-4 h-4 shrink-0" />
-                <a href="tel:07927970960">07927970960</a>
-              </div>
+                <div className="flex items-center gap-3 text-white opacity-70 hover:opacity-100 transition">
+                  <a href="tel:07927970960">07927970960</a>
+                </div>
 
-              <div className="flex items-center gap-3 opacity-70 hover:opacity-100 transition">
-                <Mail className="w-4 h-4 shrink-0" />
-                <a href="mailto:info@parkpro.uk">info@parkpro.uk</a>
+                <div className="flex items-center gap-3 text-white opacity-70 hover:opacity-100 transition">
+                  <a href="mailto:info@parkpro.uk">info@parkpro.uk</a>
+                </div>
+              </div>
+            </div>
+            <div className="col-span-2 sm:col-span-4 lg:col-span-4 border-t border-white/10">
+              <div className="flex flex-col sm:flex-row items-center sm:justify-between text-white text-xs pt-4 gap-2 text-center sm:text-left">
+                <p>© 2026 ParkPro.uk All rights reserved.</p>
+                <div className="flex flex-col sm:flex-row items-center sm:justify-between text-white text-xs pt-4 gap-5 text-center sm:text-left">
+                  <p>
+                    Made with ❤️{" "}
+                    <a
+                      href="https://thesocialnexus.co.uk"
+                      className="underline hover:opacity-100 transition"
+                    >
+                      TSN
+                    </a>
+                  </p>
+
+                  <Link
+                    href="/policies"
+                    className="hover:opacity-100 cursor-pointer"
+                  >
+                    Privacy Policy
+                  </Link>
+                  <Link
+                    href="/terms"
+                    className="hover:opacity-100 cursor-pointer"
+                  >
+                    Terms
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Bottom Bar */}
-        <div className="mt-12 pt-6 flex flex-col sm:flex-row items-center sm:justify-between text-sm opacity-60 text-xs border-t border-white/10 pt-4 gap-2 text-center sm:text-left">
-          <p>
-            Made with ❤️ <a href="https://thesocialnexus.co.uk" className="underline hover:opacity-100 transition">
-              TSN
-            </a>
-          </p>
-        </div>
-        <div className="pt-3 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm opacity-60 text-center sm:text-left">
-          <p>
-            © {new Date().getFullYear()} ParkPro Airport Parking. All rights
-            reserved.
-          </p>
-
-          <div className="flex gap-4">
-            <Link href="/policies" className="hover:opacity-100 cursor-pointer">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="hover:opacity-100 cursor-pointer">Terms</Link>
-          </div>
-        </div>
-      </div>
-    </footer>
-    // <footer className=" bg-gradient-to-br from-primary to-primary-light  text-white">
-    //   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-[url('/footer.svg')] bg-contain bg-center bg-no-repeat">
-    //     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-    //       {/* Brand */}
-    //       <div className="">
-    //         <Link href="/" className="flex items-center gap-2 mb-4">
-    //           <Image src="/FooterLogo.svg" alt="Logo" width={32} height={32} />
-    //           <p className="flex items-center text-lg text-white uppercase leading-none">
-    //             <span className="font-bold">Park</span>
-    //             <span className="font-normal">Pro</span>
-    //           </p>
-    //         </Link>
-    //         <p className="text-sm opacity-70 max-w-md leading-relaxed">
-    //           Secure, affordable airport parking with guaranteed spaces. Book
-    //           online and enjoy peace of mind while you travel.
-    //         </p>
-    //       </div>
-
-    //       {/* Quick Links */}
-    //       <div>
-    //         <h4 className="font-semibold text-white mb-4">Quick Links</h4>
-    //         <ul className="space-y-2 text-sm">
-    //           {[
-    //             { href: "/", label: "Home" },
-    //             { href: "/book", label: "Book Parking" },
-    //             { href: "/track", label: "Track Booking" },
-    //             { href: "/about", label: "About Us" },
-    //           ].map(({ href, label }) => (
-    //             <li key={href}>
-    //               <Link
-    //                 href={href}
-    //                 className="opacity-70 hover:opacity-100 transition-opacity"
-    //               >
-    //                 {label}
-    //               </Link>
-    //             </li>
-    //           ))}
-    //         </ul>
-    //       </div>
-
-    //       {/* Support */}
-    //       <div>
-    //         <h4 className="font-semibold text-white mb-4">Support</h4>
-    //         <ul className="space-y-2 text-sm">
-    //           {[
-    //             { href: "/faqs", label: "FAQs" },
-    //             { href: "/contact", label: "Contact Us" },
-    //             { href: "/support", label: "Support" },
-    //           ].map(({ href, label }) => (
-    //             <li key={href}>
-    //               <Link
-    //                 href={href}
-    //                 className="opacity-70 hover:opacity-100 transition-opacity"
-    //               >
-    //                 {label}
-    //               </Link>
-    //             </li>
-    //           ))}
-    //         </ul>
-    //       </div>
-
-    //       <div>
-    //         <h4 className="font-semibold text-white mb-4">Contact Us</h4>
-    //         <div className="flex items-start gap-3 opacity-70 hover:opacity-100 transition-opacity">
-    //           <MapPin className="w-4 h-4 mt-1 shrink-0" />
-    //           <p className="text-sm">
-    //             <a
-    //               href="https://maps.app.goo.gl/8p6775Y581w297t97"
-    //               target="_blank"
-    //               rel="noopener noreferrer"
-    //             >
-    //               103 Pennine Way <br />
-    //               UB3 5LJ
-    //             </a>
-    //           </p>
-    //         </div>
-
-    //         {/* Phone */}
-    //         <div className="flex items-center gap-3 opacity-70 hover:opacity-100 transition-opacity">
-    //           <Phone className="w-4 h-4 shrink-0" />
-    //           <p className="text-sm">
-    //             <a href="tel:07903835808">07903 835808</a>
-    //           </p>
-    //         </div>
-
-    //         {/* Email */}
-    //         <div className="flex items-center gap-3 opacity-70 hover:opacity-100 transition-opacity">
-    //           <Mail className="w-4 h-4 shrink-0" />
-    //           <p className="text-sm">
-    //             <a href="mailto:info@parkpro.uk">info@parkpro.uk</a>
-    //           </p>
-    //         </div>
-    //       </div>
-    //     </div>
-
-    //     <div className="mt-10 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-    //       <p className="text-sm opacity-60">
-    //         © {new Date().getFullYear()} ParkPro Airport Parking. All rights
-    //         reserved.
-    //       </p>
-    //       <div className="flex items-center gap-4 text-sm opacity-60">
-    //         <span>Privacy Policy</span>
-    //         <span>Terms of Service</span>
-    //       </div>
-    //     </div>
-    //   </div>
-    // </footer>
+      </footer>
   );
 }

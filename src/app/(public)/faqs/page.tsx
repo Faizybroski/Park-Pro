@@ -52,7 +52,7 @@ export default function FAQsPage() {
           {faqs.map((faq, i) => (
             <div
               key={i}
-              className="rounded-xl border overflow-hidden"
+              className="group rounded-xl border overflow-hidden card-hover hover-border-pop"
               style={{
                 background: "var(--card)",
                 borderColor: "var(--border)",
@@ -63,9 +63,11 @@ export default function FAQsPage() {
                 className="w-full text-left px-6 py-4 flex justify-between items-center font-medium"
                 style={{ color: "var(--foreground)" }}
               >
-                {faq.q}
+                <span className="group-hover:text-primary transition-colors duration-200">
+                  {faq.q}
+                </span>
                 <span
-                  className="text-xl transition-transform"
+                  className="text-xl transition-transform duration-300"
                   style={{
                     transform: openIndex === i ? "rotate(45deg)" : "rotate(0)",
                   }}
@@ -73,14 +75,16 @@ export default function FAQsPage() {
                   +
                 </span>
               </button>
-              {openIndex === i && (
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${openIndex === i ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0"}`}
+              >
                 <div
-                  className="px-6 pb-4 text-sm leading-relaxed animate-fade-in"
+                  className="px-6 pb-4 text-sm leading-relaxed"
                   style={{ color: "var(--muted-foreground)" }}
                 >
                   {faq.a}
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>

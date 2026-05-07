@@ -53,7 +53,7 @@ export default function TermsPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">2. Payments</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>
@@ -91,7 +91,7 @@ export default function TermsPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">
             3. Amendments & Cancellations
           </h2>
@@ -123,7 +123,7 @@ export default function TermsPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">4. Liability</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• Our insurance covers our legal liabilities. </li>
@@ -279,7 +279,7 @@ export default function TermsPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">5. Exclusions</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             We will not accept legal responsibility for the following:
@@ -352,7 +352,7 @@ export default function TermsPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">6. Changing the conditions</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>
@@ -385,7 +385,7 @@ export default function TermsPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">Note:</h2>
           <ul className="space-y-2 text-sm text-muted-foreground font-bold">
             Ultra Low Emission Zone (ULEZ) is expanding across all London boroughs 

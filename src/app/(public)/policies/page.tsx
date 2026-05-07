@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
       <section className="py-16 max-w-4xl mx-auto px-4 space-y-10">
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">1. Information We Collect</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• Personal details such as name, email address, and phone number.</li>
@@ -24,7 +24,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">2. How We Use Your Information</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• To process and manage your bookings.</li>
@@ -35,7 +35,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">3. Sharing of Information</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• With payment processors to complete transactions.</li>
@@ -45,7 +45,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">4. Data Security</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• We implement reasonable security measures to protect your data.</li>
@@ -54,7 +54,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">5. Data Retention</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• Your data is retained only as long as necessary for service and legal purposes.</li>
@@ -62,7 +62,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">6. Your Rights</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• You may request access to your personal data.</li>
@@ -72,7 +72,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">7. Cookies</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• We may use cookies to enhance user experience.</li>
@@ -81,7 +81,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         {/* Section */}
-        <div className="rounded-2xl border p-6">
+        <div className="rounded-2xl border p-6 card-hover hover-border-pop">
           <h2 className="text-xl font-bold mb-4">8. Contact Information</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>• For privacy-related inquiries, please contact us via email or phone.</li>

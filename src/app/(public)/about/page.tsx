@@ -67,7 +67,7 @@ export default function AboutPage() {
           {/* <div className=""> */}
           <div className="space-y-8">
             <div
-              className="rounded-2xl border p-8"
+              className="rounded-2xl border p-8 card-hover hover-border-pop hover-shimmer"
               style={{
                 background: "var(--card)",
                 borderColor: "var(--border)",
@@ -96,14 +96,14 @@ export default function AboutPage() {
                 return (
                   <div
                     key={i}
-                    className="rounded-2xl border p-6 text-center"
+                    className="group rounded-2xl border p-6 text-center card-hover hover-shimmer hover-border-pop"
                     style={{
                       background: "var(--card)",
                       borderColor: "var(--border)",
                     }}
                   >
                     <div
-                      className={`w-14 h-14 mx-auto flex items-center justify-center rounded-xl mb-4 ${item.bg} group-hover:scale-110 transition`}
+                      className={`w-14 h-14 mx-auto flex items-center justify-center rounded-xl mb-4 ${item.bg} icon-pop`}
                     >
                       <Icon className={`w-7 h-7 ${item.color}`} />
                     </div>

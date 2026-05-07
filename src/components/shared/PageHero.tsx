@@ -31,13 +31,31 @@ export default function PageHero({ title, subtitle }: PageHeroProps) {
         className="pointer-events-none absolute inset-0 h-full w-full object-cover "
       />
 
+      {/* ─ Floating decorative blobs ─ */}
+      <div
+        className="pointer-events-none absolute -top-10 -left-10 w-64 h-64 rounded-full bg-orange-400/30 blur-3xl animate-float"
+        style={{ animationDelay: "0s" }}
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute bottom-0 right-10 w-48 h-48 rounded-full bg-white/20 blur-2xl animate-float"
+        style={{ animationDelay: "1.4s" }}
+        aria-hidden
+      />
+
       {/* ─ Content ─ */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-20 pt-32 text-center text-white">
-        <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 drop-shadow-lg animate-slide-up">
+        <h1
+          className="text-4xl sm:text-5xl font-extrabold mb-4 drop-shadow-lg animate-slide-up"
+          style={{ willChange: "transform" }}
+        >
           {title}
         </h1>
         {subtitle && (
-          <p className="text-lg opacity-85 max-w-xl mx-auto animate-fade-in drop-shadow">
+          <p
+            className="text-lg opacity-85 max-w-xl mx-auto animate-fade-in drop-shadow"
+            style={{ willChange: "transform" }}
+          >
             {subtitle}
           </p>
         )}
