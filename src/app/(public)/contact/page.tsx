@@ -27,7 +27,7 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { Mail, Phone, MessageCircle, Clock } from "lucide-react";
 import PageHero from "@/components/shared/PageHero";
 
 const items = [
@@ -46,11 +46,10 @@ const items = [
     bg: "bg-green-100",
   },
   {
-    icon: MapPin,
-    title: "Address",
-    value: "103 Pennine Way UB3 5LJ",
-    color: "text-red-600",
-    bg: "bg-red-100",
+    icon: MessageCircle,
+    title: "WhatsApp",
+    value: "07927970960",
+    bg: "bg-emerald-100",
   },
   {
     icon: Clock,
